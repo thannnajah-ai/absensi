@@ -124,6 +124,10 @@ class TelegramService {
         }
       }
 
+      if (linkedCount > 0) {
+        setTimeout(() => this.runWorker().catch(() => {}), 300);
+      }
+
       return { success: true, count: linkedCount, message: `Berhasil menautkan ${linkedCount} akun wali baru!` };
     } catch (err) {
       console.error('Error syncing bot updates:', err);
@@ -174,12 +178,28 @@ class TelegramService {
    * Mengirim secara nyata jika bot token aktif, atau memutakhirkan status antrean.
    */
   static async runWorker() {
+    // 1. Sinkronkan semua pesan / penautan kode masuk dari Telegram secara otomatis
+    try {
+      await this.syncBotUpdates();
+    } catch (e) {
+      console.warn('Sync updates error in worker:', e);
+    }
+
     const db = DB.get();
     const token = window.AppConfig?.telegramBotToken;
     let sentCount = 0;
 
     const queue = db.notification_queue || [];
     for (const item of queue) {
+      // Periksa apakah wali dari item ini baru saja menautkan Telegram
+      if (item.status === 'unlinked') {
+        const guardian = (db.guardians || []).find(g => g.id === item.student_guardian_id);
+        if (guardian && guardian.telegram_chat_id) {
+          item.to_chat_id = guardian.telegram_chat_id;
+          item.status = 'queued';
+        }
+      }
+
       if (item.status === 'queued') {
         item.attempts = (item.attempts || 0) + 1;
 

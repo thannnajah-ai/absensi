@@ -49,6 +49,14 @@ class App {
         console.log('SW registration note:', err);
       });
     }
+
+    // Auto-sync notifikasi & penautan Telegram otomatis di background
+    if (typeof TelegramService !== 'undefined') {
+      TelegramService.syncBotUpdates();
+      setInterval(() => {
+        TelegramService.syncBotUpdates();
+      }, 8000);
+    }
   }
 
   static login(user) {

@@ -565,9 +565,16 @@ class StudentView {
         this.closeCheckinModal();
         this.showSuccessConfirmation(attendanceRecord, true);
       } else {
+        if (typeof TelegramService !== 'undefined') {
+          try {
+            await TelegramService.syncBotUpdates();
+          } catch (e) {
+            console.warn('Sync updates before checkin error:', e);
+          }
+        }
         DB.addAttendance(attendanceRecord);
         if (typeof TelegramService !== 'undefined') {
-          TelegramService.runWorker().catch(e => console.error('Telegram worker error:', e));
+          await TelegramService.runWorker().catch(e => console.error('Telegram worker error:', e));
         }
         this.closeCheckinModal();
         this.showSuccessConfirmation(attendanceRecord, false);
@@ -617,7 +624,7 @@ class StudentView {
             <div style="border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 4px;">
               <b>Notifikasi Telegram Wali:</b><br/>
               ${hasLinkedGuardian 
-                ? '<span style="color: var(--success); font-weight: 600;">Terdaftar dalam antrean pengiriman.</span>' 
+                ? '<span style="color: var(--success); font-weight: 600;">Otomatis dikirimkan ke Telegram orang tua / wali.</span>' 
                 : '<span style="color: var(--text-muted);">Akun Telegram belum ditautkan (Absensi tetap sah).</span>'}
             </div>
           </div>
