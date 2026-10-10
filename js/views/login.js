@@ -317,15 +317,75 @@ class LoginView {
         btn.classList.add('state-success');
       }
 
-      // Mainkan efek exit transisi halaman
+      // Mainkan Konsep B: Welcome Hologram Card & Slide-Wipe Transition
       setTimeout(() => {
-        if (card) card.classList.add('login-exit-zoom');
-        setTimeout(() => {
-          if (this.clockTimer) clearInterval(this.clockTimer);
-          App.login(authResult.user);
-        }, 380);
-      }, 420);
+        this.showWelcomeTransition(authResult.user);
+      }, 350);
     }, 450);
+  }
+
+  static showWelcomeTransition(user) {
+    const roleLabel = user.role === 'admin' 
+      ? 'Administrator / Tenaga Pendidik' 
+      : (user.class_name ? `${user.class_name} • NIS: ${user.nis}` : 'Siswa SMAN 1 Teladan');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'welcome-transition-overlay';
+    overlay.id = 'welcomeTransitionOverlay';
+    overlay.innerHTML = `
+      <div class="welcome-transition-card" id="welcomeTransitionCard">
+        <div class="welcome-badge-icon">
+          ${Icons.schoolBadge(36)}
+        </div>
+        <div class="welcome-auth-pill">
+          ${Icons.checkCircle(14)}
+          <span>Autentikasi Terverifikasi</span>
+        </div>
+        <h2 class="welcome-name-title">
+          Selamat Datang, ${user.full_name}
+        </h2>
+        <div class="welcome-meta-sub">
+          ${roleLabel}
+        </div>
+        <div class="welcome-progress-track">
+          <div class="welcome-progress-bar" id="welcomeProgressBar"></div>
+        </div>
+        <div class="welcome-status-hint">
+          Menyiapkan beranda presensi...
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Jalankan bilah progres secara bertahap dan halus
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const bar = document.getElementById('welcomeProgressBar');
+        if (bar) bar.style.width = '100%';
+      }, 50);
+    });
+
+    // Setelah progres selesai (700ms), mainkan efek slide wipe keluar dan tampilkan dashboard
+    setTimeout(() => {
+      const card = document.getElementById('welcomeTransitionCard');
+      if (card) card.classList.add('welcome-card-exit');
+
+      setTimeout(() => {
+        overlay.remove();
+        if (this.clockTimer) clearInterval(this.clockTimer);
+        App.login(user);
+
+        // Berikan efek wipe halus pada kontainer dashboard beranda
+        const content = document.getElementById('appContent');
+        if (content) {
+          content.classList.remove('dashboard-wipe-enter');
+          void content.offsetWidth;
+          content.classList.add('dashboard-wipe-enter');
+          setTimeout(() => content.classList.remove('dashboard-wipe-enter'), 500);
+        }
+      }, 320);
+    }, 680);
   }
 
   static triggerShake() {
