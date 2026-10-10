@@ -251,7 +251,9 @@ class StudentView {
               </div>
               ${l.attachment_path ? `
                 <div style="margin-top: 8px;">
-                  <a href="${l.attachment_path}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.78rem;">Lihat Lampiran Berkas</a>
+                  <button type="button" class="btn btn-sm btn-outline scale-press" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 6px;" onclick="StudentView.openAttachmentLightbox('${l.attachment_path.replace(/'/g, "\\'")}', 'Surat Keterangan (${l.type.toUpperCase()})')">
+                    ${Icons.eye(14)} Lihat Lampiran Berkas
+                  </button>
                 </div>
               ` : ''}
               ${l.review_note ? `
@@ -734,77 +736,349 @@ class StudentView {
     document.body.appendChild(modal);
   }
 
-  // --- Modal Pengajuan Izin / Sakit (PRD FR-31 s/d 36) ---
+  // --- Modal Pengajuan Izin / Sakit (PRD FR-31 s/d FR-36) ---
+  static _currentLeaveFile = null;
+
   static openLeaveModal() {
+    this._currentLeaveFile = null;
+    const todayIso = new Date().toISOString().split('T')[0];
+
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
+    modal.id = 'leaveModalBackdrop';
     modal.innerHTML = `
       <div class="modal-content">
         <div class="modal-header">
-          <div class="modal-title">Ajukan Izin atau Sakit</div>
+          <div>
+            <div class="modal-title">Ajukan Izin atau Sakit</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">PRD FR-31 s/d FR-36 • Ketidakhadiran Resmi Siswa</div>
+          </div>
           <button class="modal-close-btn" onclick="this.closest('.modal-backdrop').remove()">&times;</button>
         </div>
         <div class="modal-body">
+          <!-- Segmented Type Selector -->
           <div class="form-group">
             <label class="form-label form-label-required">Jenis Pengajuan</label>
-            <select id="leaveType" class="form-select">
-              <option value="sakit">Sakit</option>
-              <option value="izin">Izin</option>
-            </select>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div class="form-group">
-              <label class="form-label form-label-required">Mulai Tanggal</label>
-              <input type="date" id="leaveDateFrom" class="form-input" value="${new Date().toISOString().split('T')[0]}" />
+            <div class="segmented-control">
+              <button type="button" id="leaveTypeSakit" class="segmented-btn active" onclick="StudentView.selectLeaveType('sakit')">Sakit</button>
+              <button type="button" id="leaveTypeIzin" class="segmented-btn" onclick="StudentView.selectLeaveType('izin')">Izin</button>
             </div>
-            <div class="form-group">
-              <label class="form-label form-label-required">Sampai Tanggal</label>
-              <input type="date" id="leaveDateTo" class="form-input" value="${new Date().toISOString().split('T')[0]}" />
+            <input type="hidden" id="leaveType" value="sakit" />
+            <div id="leaveTypeHelp" class="form-help" style="margin-top: 6px;">
+              Lampirkan surat keterangan dokter dari puskesmas, klinik, atau rumah sakit resmi.
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label form-label-required">Alasan / Keterangan</label>
-            <textarea id="leaveNote" class="form-textarea" rows="3" placeholder="Jelaskan alasan izin / sakit..."></textarea>
+          <!-- Date Range & Dynamic Duration -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label form-label-required" style="margin-bottom: 0;">Rentang Tanggal</label>
+              <span id="leaveDurationPill" class="date-duration-pill">Durasi: 1 Hari</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Mulai</span>
+                <input type="date" id="leaveDateFrom" class="form-input" value="${todayIso}" onchange="StudentView.onLeaveDateChange()" />
+              </div>
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Sampai</span>
+                <input type="date" id="leaveDateTo" class="form-input" value="${todayIso}" onchange="StudentView.onLeaveDateChange()" />
+              </div>
+            </div>
           </div>
 
+          <!-- Reason / Note -->
           <div class="form-group">
-            <label class="form-label">Unggah Surat Dokter / Surat Izin (Maks 300 KB)</label>
-            <input type="file" id="leaveAttachment" class="form-input" accept="image/*,.pdf" />
-            <span class="form-help">PRD FR-35: Data kesehatan disimpan privat dan hanya dapat dibuka oleh admin.</span>
+            <label class="form-label form-label-required">Alasan / Penjelasan</label>
+            <textarea id="leaveNote" class="form-textarea" rows="3" placeholder="Tuliskan alasan jelas atau diagnosa dokter..."></textarea>
+          </div>
+
+          <!-- File Dropzone & Client-side 300KB Validation -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="margin-bottom: 0;">Unggah Surat Keterangan / Bukti</label>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Maks. 300 KB</span>
+            </div>
+
+            <input type="file" id="leaveAttachmentInput" accept="image/*,.pdf" style="display: none;" onchange="StudentView.handleLeaveFileSelect(this)" />
+
+            <div id="leaveDropzone" class="file-dropzone" onclick="document.getElementById('leaveAttachmentInput').click()" ondragover="StudentView.handleDropzoneDragOver(event)" ondragleave="StudentView.handleDropzoneDragLeave(event)" ondrop="StudentView.handleDropzoneDrop(event)">
+              <div class="file-dropzone-icon">
+                ${Icons.upload(20)}
+              </div>
+              <div>
+                <div class="file-dropzone-title">Pilih atau seret berkas surat ke sini</div>
+                <div class="file-dropzone-sub">Format JPG, PNG, atau PDF (maksimal 300 KB)</div>
+              </div>
+            </div>
+
+            <div id="leaveFileError" class="file-dropzone-error-msg" style="display: none;"></div>
+            <div id="leaveFilePreview" style="display: none;"></div>
+
+            <span class="form-help" style="margin-top: 6px; display: block;">PRD FR-35: Data kesehatan disimpan terenkripsi privat dan hanya dapat dibuka oleh guru pembina / admin sekolah.</span>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button class="btn btn-secondary" onclick="this.closest('.modal-backdrop').remove()">Batal</button>
-          <button class="btn btn-primary" onclick="StudentView.submitLeaveRequest(this)">Kirim Pengajuan</button>
+          <button type="button" class="btn btn-secondary scale-press" onclick="this.closest('.modal-backdrop').remove()">Batal</button>
+          <button type="button" id="btnSubmitLeave" class="btn btn-primary scale-press" onclick="StudentView.submitLeaveRequest(this)">Kirim Pengajuan</button>
         </div>
       </div>
     `;
     document.body.appendChild(modal);
   }
 
+  static selectLeaveType(type) {
+    const hiddenInput = document.getElementById('leaveType');
+    const btnSakit = document.getElementById('leaveTypeSakit');
+    const btnIzin = document.getElementById('leaveTypeIzin');
+    const helpText = document.getElementById('leaveTypeHelp');
+
+    if (hiddenInput) hiddenInput.value = type;
+
+    if (type === 'sakit') {
+      btnSakit?.classList.add('active');
+      btnIzin?.classList.remove('active');
+      if (helpText) {
+        helpText.textContent = 'Lampirkan surat keterangan dokter dari puskesmas, klinik, atau rumah sakit resmi.';
+      }
+    } else {
+      btnIzin?.classList.add('active');
+      btnSakit?.classList.remove('active');
+      if (helpText) {
+        helpText.textContent = 'Lampirkan surat permohonan izin bertanda tangan orang tua/wali atau surat tugas resmi.';
+      }
+    }
+  }
+
+  static onLeaveDateChange() {
+    const fromInput = document.getElementById('leaveDateFrom');
+    const toInput = document.getElementById('leaveDateTo');
+    const pill = document.getElementById('leaveDurationPill');
+    if (!fromInput || !toInput || !pill) return;
+
+    if (toInput.value < fromInput.value) {
+      toInput.value = fromInput.value;
+    }
+
+    const d1 = new Date(fromInput.value);
+    const d2 = new Date(toInput.value);
+    const diffTime = d2.getTime() - d1.getTime();
+    const days = Math.max(1, Math.round(diffTime / (1000 * 3600 * 24)) + 1);
+
+    pill.textContent = `Durasi: ${days} Hari`;
+  }
+
+  static handleLeaveFileSelect(input) {
+    const file = input.files && input.files[0];
+    if (file) {
+      this.processLeaveFile(file);
+    }
+  }
+
+  static handleDropzoneDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('leaveDropzone')?.classList.add('drag-active');
+  }
+
+  static handleDropzoneDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('leaveDropzone')?.classList.remove('drag-active');
+  }
+
+  static handleDropzoneDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('leaveDropzone')?.classList.remove('drag-active');
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) {
+      this.processLeaveFile(file);
+    }
+  }
+
+  static processLeaveFile(file) {
+    const dropzone = document.getElementById('leaveDropzone');
+    const errEl = document.getElementById('leaveFileError');
+    const prevEl = document.getElementById('leaveFilePreview');
+    const submitBtn = document.getElementById('btnSubmitLeave');
+
+    const maxBytes = 300 * 1024;
+    if (file.size > maxBytes) {
+      const sizeKb = (file.size / 1024).toFixed(1);
+      dropzone?.classList.add('has-error');
+      if (errEl) {
+        errEl.style.display = 'flex';
+        errEl.textContent = `Ukuran berkas (${sizeKb} KB) melebihi batas maksimal 300 KB (PRD FR-35). Harap perkecil ukuran foto/dokumen Anda.`;
+      }
+      if (prevEl) prevEl.style.display = 'none';
+      this._currentLeaveFile = null;
+      if (submitBtn) submitBtn.disabled = true;
+      App.showToast(`Ukuran berkas melebihi 300 KB (${sizeKb} KB)`, 'error');
+      return;
+    }
+
+    dropzone?.classList.remove('has-error');
+    if (errEl) errEl.style.display = 'none';
+    if (submitBtn) submitBtn.disabled = false;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this._currentLeaveFile = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        dataUrl: e.target.result
+      };
+      this.renderLeaveFilePreview();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  static renderLeaveFilePreview() {
+    const item = this._currentLeaveFile;
+    const prevEl = document.getElementById('leaveFilePreview');
+    const dropzone = document.getElementById('leaveDropzone');
+    if (!item || !prevEl) return;
+
+    const isImg = item.type.startsWith('image/') || item.dataUrl.startsWith('data:image');
+    const sizeKb = (item.size / 1024).toFixed(1);
+
+    prevEl.innerHTML = `
+      <div class="file-preview-card">
+        <div class="file-preview-main">
+          ${isImg
+            ? `<img src="${item.dataUrl}" class="file-preview-thumb" alt="Thumbnail" onclick="StudentView.openAttachmentLightbox('${item.dataUrl.replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}')" title="Klik untuk lihat pratinjau penuh" />`
+            : `<div class="file-preview-doc-icon">${Icons.fileText(20)}<span>PDF</span></div>`
+          }
+          <div class="file-preview-info">
+            <div class="file-preview-name" title="${item.name}">${item.name}</div>
+            <div class="file-preview-meta">
+              <span>${sizeKb} KB</span>
+              <span>•</span>
+              <span style="color: var(--success); font-weight: 600;">Siap diunggah</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="file-preview-remove-btn scale-press" onclick="StudentView.removeLeaveFile()">
+          ${Icons.trash(14)}
+          <span>Hapus</span>
+        </button>
+      </div>
+    `;
+
+    prevEl.style.display = 'block';
+    if (dropzone) dropzone.style.display = 'none';
+  }
+
+  static removeLeaveFile() {
+    this._currentLeaveFile = null;
+    const input = document.getElementById('leaveAttachmentInput');
+    if (input) input.value = '';
+
+    const prevEl = document.getElementById('leaveFilePreview');
+    if (prevEl) {
+      prevEl.innerHTML = '';
+      prevEl.style.display = 'none';
+    }
+
+    const dropzone = document.getElementById('leaveDropzone');
+    if (dropzone) {
+      dropzone.style.display = 'flex';
+      dropzone.classList.remove('has-error');
+    }
+
+    const errEl = document.getElementById('leaveFileError');
+    if (errEl) errEl.style.display = 'none';
+
+    const submitBtn = document.getElementById('btnSubmitLeave');
+    if (submitBtn) submitBtn.disabled = false;
+  }
+
+  static openAttachmentLightbox(url, title = 'Surat Keterangan') {
+    if (!url) {
+      App.showToast('Lampiran berkas tidak tersedia atau telah dihapus!', 'error');
+      return;
+    }
+
+    this.closeAttachmentLightbox();
+
+    const isPdf = typeof url === 'string' && (url.includes('application/pdf') || url.toLowerCase().endsWith('.pdf'));
+
+    const modal = document.createElement('div');
+    modal.className = 'lightbox-modal';
+    modal.id = 'attachmentLightbox';
+    modal.innerHTML = `
+      <div class="lightbox-card">
+        <div class="lightbox-header">
+          <div class="lightbox-title">
+            ${Icons.fileText(18)}
+            <span>${title}</span>
+          </div>
+          <button class="modal-close-btn" onclick="StudentView.closeAttachmentLightbox()">&times;</button>
+        </div>
+        <div class="lightbox-body">
+          ${isPdf
+            ? `<iframe src="${url}" class="lightbox-iframe" style="width: 100%; height: 65vh; border: none; border-radius: 6px; background: #FFF;"></iframe>`
+            : `<img src="${url}" class="lightbox-img" alt="${title}" />`
+          }
+        </div>
+        <div class="lightbox-footer">
+          <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 500;">
+            PRD FR-35 • Dokumen Resmi Siswa
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <a href="${url}" download="${(title || 'lampiran-surat').toLowerCase().replace(/[^a-z0-9]/g, '_')}" class="btn btn-sm btn-outline scale-press" style="display: inline-flex; align-items: center; gap: 6px;">
+              ${Icons.download(15)} Unduh Berkas
+            </a>
+            <button class="btn btn-sm btn-secondary scale-press" onclick="StudentView.closeAttachmentLightbox()">Tutup</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        StudentView.closeAttachmentLightbox();
+      }
+    });
+
+    const keyHandler = (e) => {
+      if (e.key === 'Escape') {
+        StudentView.closeAttachmentLightbox();
+        window.removeEventListener('keydown', keyHandler);
+      }
+    };
+    window.addEventListener('keydown', keyHandler);
+
+    document.body.appendChild(modal);
+  }
+
+  static closeAttachmentLightbox() {
+    const el = document.getElementById('attachmentLightbox');
+    if (el) el.remove();
+  }
+
   static submitLeaveRequest(btn) {
-    const type = document.getElementById('leaveType').value;
-    const dateFrom = document.getElementById('leaveDateFrom').value;
-    const dateTo = document.getElementById('leaveDateTo').value;
-    const note = document.getElementById('leaveNote').value.trim();
-    const fileInput = document.getElementById('leaveAttachment');
+    const type = document.getElementById('leaveType')?.value || 'sakit';
+    const dateFrom = document.getElementById('leaveDateFrom')?.value;
+    const dateTo = document.getElementById('leaveDateTo')?.value;
+    const note = document.getElementById('leaveNote')?.value?.trim();
 
     if (!note) {
-      App.showToast('Harap isi keterangan alasan izin/sakit!', 'error');
+      App.showToast('Harap tuliskan keterangan atau alasan pengajuan!', 'error');
+      document.getElementById('leaveNote')?.focus();
       return;
     }
 
     let attachmentPath = null;
-    if (fileInput && fileInput.files && fileInput.files[0]) {
-      const file = fileInput.files[0];
-      if (file.size > 300 * 1024) {
-        App.showToast('Ukuran berkas melebihi batas 300 KB (PRD FR-31)!', 'error');
+    if (this._currentLeaveFile) {
+      if (this._currentLeaveFile.size > 300 * 1024) {
+        App.showToast('Ukuran berkas melebihi batas maksimal 300 KB!', 'error');
         return;
       }
-      attachmentPath = URL.createObjectURL(file);
+      attachmentPath = this._currentLeaveFile.dataUrl;
     }
 
     DB.addLeaveRequest({
@@ -821,10 +1095,12 @@ class StudentView {
       created_at: new Date().toISOString()
     });
 
-    btn.closest('.modal-backdrop').remove();
-    App.showToast('Pengajuan berhasil dikirim dan menunggu persetujuan guru!', 'success');
+    this._currentLeaveFile = null;
+    btn.closest('.modal-backdrop')?.remove();
+    App.showToast('Pengajuan berhasil dikirim dan menunggu verifikasi guru!', 'success');
     App.renderCurrentView();
   }
 }
 
 window.StudentView = StudentView;
+

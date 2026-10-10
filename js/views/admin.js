@@ -431,12 +431,16 @@ class AdminView {
                       <td>${l.date_from} s/d ${l.date_to}</td>
                       <td style="max-width: 200px;">"${l.note}"</td>
                       <td>
-                        ${l.attachment_path ? `<a href="${l.attachment_path}" target="_blank" class="btn btn-sm btn-outline">Lihat Surat</a>` : '<span style="color: var(--text-muted); font-size: 0.8rem;">-</span>'}
+                        ${l.attachment_path ? `
+                          <button type="button" class="btn btn-sm btn-outline scale-press" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;" onclick="StudentView.openAttachmentLightbox('${l.attachment_path.replace(/'/g, "\\'")}', 'Surat Keterangan - ${(s?.full_name || 'Siswa').replace(/'/g, "\\'")}')">
+                            ${Icons.eye(14)} Lihat Surat
+                          </button>
+                        ` : '<span style="color: var(--text-muted); font-size: 0.8rem;">-</span>'}
                       </td>
                       <td>
                         <div style="display: flex; gap: 6px;">
-                          <button class="btn btn-sm btn-success" onclick="AdminView.reviewLeave('${l.id}', 'approved')">Setujui</button>
-                          <button class="btn btn-sm btn-danger" onclick="AdminView.reviewLeave('${l.id}', 'rejected')">Tolak</button>
+                          <button class="btn btn-sm btn-success scale-press" onclick="AdminView.reviewLeave('${l.id}', 'approved')">Setujui</button>
+                          <button class="btn btn-sm btn-danger scale-press" onclick="AdminView.reviewLeave('${l.id}', 'rejected')">Tolak</button>
                         </div>
                       </td>
                     </tr>
@@ -805,8 +809,19 @@ class AdminView {
   }
 
   static reviewLeave(leaveId, newStatus) {
-    DB.updateLeaveRequest(leaveId, newStatus, `Ditinjau oleh admin pada ${new Date().toLocaleTimeString('id-ID')}`);
-    App.showToast(`Permohonan izin berhasil diubah: ${newStatus.toUpperCase()}`, 'success');
+    const leave = DB.getLeaveRequests().find(l => l.id === leaveId);
+    const student = DB.getProfileById(leave?.user_id);
+    const studentName = student?.full_name || 'Siswa';
+
+    let customNote = `Disetujui oleh admin sekolah pada ${new Date().toLocaleTimeString('id-ID')} WIB`;
+    if (newStatus === 'rejected') {
+      const input = prompt(`Masukkan alasan penolakan izin/sakit untuk "${studentName}":`, 'Surat keterangan dokter belum lengkap atau tidak valid.');
+      if (input === null) return; // Tindakan dibatalkan admin
+      customNote = input.trim() || 'Ditolak oleh admin sekolah.';
+    }
+
+    DB.updateLeaveRequest(leaveId, newStatus, customNote);
+    App.showToast(`Permohonan ${leave?.type === 'sakit' ? 'sakit' : 'izin'} ${studentName} berhasil ${newStatus === 'approved' ? 'disetujui' : 'ditolak'}!`, 'success');
     App.renderCurrentView();
   }
 
