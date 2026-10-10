@@ -460,10 +460,15 @@ class AdminView {
 
     return `
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
           <div>
             <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Pengelolaan Orang Tua/Wali & Telegram</h1>
             <p style="font-size: 0.88rem; color: var(--text-secondary);">Kode penautan unik 6-karakter berlaku 24 jam (PRD FR-45). Verifikasi sebelum pemutusan tautan (FR-44).</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-primary" onclick="AdminView.syncTelegramBot()">
+              Sinkronkan Tautan Telegram Baru
+            </button>
           </div>
         </div>
 
@@ -761,14 +766,61 @@ class AdminView {
             3. Akun langsung tertaut dan siap menerima notifikasi absensi.
           </div>
 
-          <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="btn btn-secondary btn-block" onclick="this.closest('.modal-backdrop').remove()">Tutup</button>
-            <button class="btn btn-primary btn-block" onclick="navigator.clipboard.writeText('${codeObj.rawCode}'); App.showToast('Kode berhasil disalin!', 'success');">Salin Kode</button>
+          <div id="modalLinkingStatus" style="margin-top: 14px;">
+            <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <span>Menunggu pesan dari wali di @${window.AppConfig?.telegramBotUsername || 'AbsenM3INBot'}...</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 16px;">
+            <button class="btn btn-secondary btn-block" onclick="clearInterval(window._tgModalInterval); this.closest('.modal-backdrop').remove()">Tutup</button>
+            <button class="btn btn-primary btn-block" onclick="AdminView.checkModalLinking('${guardianId}')">Cek Status Penautan</button>
           </div>
         </div>
       </div>
     `;
     document.body.appendChild(modal);
+
+    clearInterval(window._tgModalInterval);
+    window._tgModalInterval = setInterval(async () => {
+      if (!document.getElementById('modalLinkingStatus')) {
+        clearInterval(window._tgModalInterval);
+        return;
+      }
+      await TelegramService.syncBotUpdates();
+      const updatedG = DB.getGuardians().find(g => g.id === guardianId);
+      if (updatedG && updatedG.telegram_chat_id) {
+        clearInterval(window._tgModalInterval);
+        const el = document.getElementById('modalLinkingStatus');
+        if (el) {
+          el.innerHTML = `
+            <div style="background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 10px 14px; border-radius: var(--radius-input); font-weight: 700; font-size: 0.85rem;">
+              Berhasil Tertaut! Akun ${updatedG.telegram_username} (${updatedG.telegram_chat_id}) kini aktif menerima notifikasi presensi.
+            </div>
+          `;
+        }
+        App.showToast('Akun Telegram berhasil ditautkan!', 'success');
+      }
+    }, 2500);
+  }
+
+  static async checkModalLinking(guardianId) {
+    App.showToast('Memeriksa pesan baru dari Telegram...', 'info');
+    await TelegramService.syncBotUpdates();
+    const updatedG = DB.getGuardians().find(g => g.id === guardianId);
+    if (updatedG && updatedG.telegram_chat_id) {
+      const el = document.getElementById('modalLinkingStatus');
+      if (el) {
+        el.innerHTML = `
+          <div style="background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 10px 14px; border-radius: var(--radius-input); font-weight: 700; font-size: 0.85rem;">
+            Berhasil Tertaut! Akun ${updatedG.telegram_username} (${updatedG.telegram_chat_id}) kini aktif menerima notifikasi presensi.
+          </div>
+        `;
+      }
+      App.showToast('Akun Telegram berhasil ditautkan!', 'success');
+    } else {
+      App.showToast('Belum ada pesan yang cocok dari Telegram. Pastikan kode sudah dikirimkan ke @AbsenM3INBot.', 'warning');
+    }
   }
 
   static promptUnlinkTelegram(guardianId) {
