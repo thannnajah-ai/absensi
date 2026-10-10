@@ -1,18 +1,21 @@
-const CACHE_NAME = 'absensi-cache-v1';
+const CACHE_NAME = 'absensi-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/css/style.css',
   '/css/components.css',
+  '/js/config.js',
+  '/js/icons.js',
   '/js/db.js',
   '/js/geo.js',
   '/js/camera.js',
   '/js/offline.js',
   '/js/telegram.js',
+  '/js/views/login.js',
+  '/js/views/consent.js',
   '/js/views/student.js',
   '/js/views/admin.js',
-  '/js/views/consent.js',
   '/js/app.js'
 ];
 
