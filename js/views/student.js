@@ -29,12 +29,12 @@ class StudentView {
     }
 
     container.innerHTML = `
-      <div class="student-frame panel-enter">
+      <div class="student-frame dashboard-cascade-enter">
         ${contentHtml}
       </div>
 
       <!-- Bottom Navigation Bar (design(3).md Section 4 & Wireframe A) -->
-      <nav class="bottom-nav">
+      <nav class="bottom-nav cascade-item-4">
         <button class="bottom-nav-item ${activeTab === 'beranda' ? 'active' : ''}" onclick="App.setStudentTab('beranda')">
           <span class="bottom-nav-icon">${Icons.home(18)}</span>
           <span>Beranda</span>
@@ -70,7 +70,7 @@ class StudentView {
 
     return `
       <!-- Greeting Header -->
-      <div class="card" style="padding: 16px;">
+      <div class="card cascade-item-1" style="padding: 16px;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
             <div style="font-size: 0.82rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Profil Siswa</div>
@@ -95,7 +95,7 @@ class StudentView {
       ` : ''}
 
       <!-- Attendance Hero Card with Clock and Big Action Buttons (Wireframe A) -->
-      <div class="attendance-hero-card">
+      <div class="attendance-hero-card cascade-item-2">
         <div class="live-time-display">
           <div>
             <div id="liveClock" class="live-time-clock tabular-nums">--:--:--</div>
@@ -127,7 +127,7 @@ class StudentView {
         </div>
 
         <!-- Big Action Buttons (Wireframe A) -->
-        <div class="attendance-buttons-grid">
+        <div class="attendance-buttons-grid cascade-item-3">
           <button class="btn-hero-action btn-hero-in scale-press" ${hasIn ? 'disabled' : ''} onclick="StudentView.openCheckinModal('in')">
             <span class="hero-btn-icon" style="color: var(--primary-700);">${Icons.logIn(28)}</span>
             <span class="hero-btn-title">Absen Masuk</span>

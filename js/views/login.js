@@ -293,7 +293,7 @@ class LoginView {
     }
     if (errBanner) errBanner.style.display = 'none';
 
-    // Beri sedikit jeda interaktif 450ms agar animasi morphing terlihat anggun
+    // Jeda autentikasi yang mantap (850ms) agar putaran loading spinner terlihat berirama
     setTimeout(() => {
       const authResult = DB.authenticate(identifier, password);
 
@@ -317,11 +317,11 @@ class LoginView {
         btn.classList.add('state-success');
       }
 
-      // Mainkan Konsep B: Welcome Hologram Card & Slide-Wipe Transition
+      // Tahan centang hijau selama 550ms agar mata pengguna nyaman melihat konfirmasi berhasil
       setTimeout(() => {
         this.showWelcomeTransition(authResult.user);
-      }, 350);
-    }, 450);
+      }, 550);
+    }, 850);
   }
 
   static showWelcomeTransition(user) {
@@ -350,7 +350,7 @@ class LoginView {
         <div class="welcome-progress-track">
           <div class="welcome-progress-bar" id="welcomeProgressBar"></div>
         </div>
-        <div class="welcome-status-hint">
+        <div class="welcome-status-hint" id="welcomeStatusHint">
           Menyiapkan beranda presensi...
         </div>
       </div>
@@ -358,34 +358,33 @@ class LoginView {
 
     document.body.appendChild(overlay);
 
-    // Jalankan bilah progres secara bertahap dan halus
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        const bar = document.getElementById('welcomeProgressBar');
-        if (bar) bar.style.width = '100%';
-      }, 50);
-    });
+    // Mulai animasi bilah progres setelah kartu mendarat secara anggun (200ms)
+    setTimeout(() => {
+      const bar = document.getElementById('welcomeProgressBar');
+      if (bar) bar.style.width = '100%';
+    }, 200);
 
-    // Setelah progres selesai (700ms), mainkan efek slide wipe keluar dan tampilkan dashboard
+    // Saat progres mendekati penuh (1400ms), ubah teks status menjadi siap
+    setTimeout(() => {
+      const hint = document.getElementById('welcomeStatusHint');
+      if (hint) {
+        hint.style.color = '#10B981';
+        hint.textContent = 'Presensi siap! Membuka beranda...';
+      }
+    }, 1400);
+
+    // Setelah kartu terbaca nyaman dan progres penuh (1750ms), jalankan transisi halus keluar
     setTimeout(() => {
       const card = document.getElementById('welcomeTransitionCard');
       if (card) card.classList.add('welcome-card-exit');
 
+      // Saat kartu meluncur keluar (460ms kemudian), render beranda presensi
       setTimeout(() => {
         overlay.remove();
         if (this.clockTimer) clearInterval(this.clockTimer);
         App.login(user);
-
-        // Berikan efek wipe halus pada kontainer dashboard beranda
-        const content = document.getElementById('appContent');
-        if (content) {
-          content.classList.remove('dashboard-wipe-enter');
-          void content.offsetWidth;
-          content.classList.add('dashboard-wipe-enter');
-          setTimeout(() => content.classList.remove('dashboard-wipe-enter'), 500);
-        }
-      }, 320);
-    }, 680);
+      }, 460);
+    }, 1750);
   }
 
   static triggerShake() {
