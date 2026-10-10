@@ -1,6 +1,6 @@
 # 004 — Clean Dead Code and Consolidate Motion Tokens
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 8288166
 - **Severity**: LOW
 - **Category**: Performance / Cohesion & tokens

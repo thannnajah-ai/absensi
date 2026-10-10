@@ -1110,7 +1110,12 @@
   font-size: 0.95rem;
   border: none;
   cursor: pointer;
-  transition: transform 160ms var(--ease-out), width 0.38s var(--ease-drawer), background 0.3s ease, border-radius 0.38s var(--ease-drawer), box-shadow 0.3s ease;
+  transition:
+    transform var(--motion-fast) var(--ease-out),
+    width 0.38s var(--ease-drawer),
+    background-color var(--motion-standard) var(--ease-out),
+    border-radius 0.38s var(--ease-drawer),
+    box-shadow var(--motion-standard) var(--ease-out);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1244,15 +1249,6 @@
   border-width: 1px;
 }
 
-/* Page Exit Transition */
-.login-exit-zoom {
-  animation: loginExitTransition 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes loginExitTransition {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.97) translateY(-12px); }
-}
 
 /* Responsive Breakpoints */
 @media (max-width: 840px) {
