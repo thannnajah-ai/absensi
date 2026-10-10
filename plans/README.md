@@ -7,7 +7,7 @@ Dokumen rencana perbaikan animasi ini disusun berdasarkan metodologi **Emil Kowa
 | Plan | Judul | Severity | Category | Status |
 |---|---|---|---|---|
 | [001](001-target-shake-and-error-banner.md) | Target Error Shake to Form and Smooth Banner Reveal | **MEDIUM** | Physicality / Missed Opportunity | DONE |
-| [002](002-refined-reduced-motion.md) | Refine Reduced Motion to Preserve Essential Feedback | **MEDIUM** | Accessibility | TODO |
+| [002](002-refined-reduced-motion.md) | Refine Reduced Motion to Preserve Essential Feedback | **MEDIUM** | Accessibility | DONE |
 | [003](003-role-icon-and-toggle-micro-interactions.md) | Role Tab Icon Crossfade and Password Toggle Micro-Interactions | **LOW** | Missed Opportunity / Polish | TODO |
 | [004](004-dead-code-and-token-cleanup.md) | Clean Dead Code and Consolidate Motion Tokens | **LOW** | Performance / Cohesion | TODO |
 

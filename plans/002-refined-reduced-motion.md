@@ -1,6 +1,6 @@
 # 002 — Refine Reduced Motion to Preserve Essential Feedback
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 8288166
 - **Severity**: MEDIUM
 - **Category**: Accessibility

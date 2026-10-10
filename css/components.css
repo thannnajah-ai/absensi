@@ -1445,24 +1445,40 @@
   }
 }
 
-/* Reduced Motion Support (Accessibility) */
+/* Reduced Motion Support (Accessibility - Emil Kowalski Standard) */
 @media (prefers-reduced-motion: reduce) {
   .login-split-card,
   .login-form-stagger > *,
-  .aurora-orb,
-  .login-hero-badge,
-  .hero-clock-dot,
-  .btn-login-submit,
-  .welcome-transition-card,
-  .welcome-transition-overlay,
-  .dashboard-cascade-enter,
   .cascade-item-1,
   .cascade-item-2,
   .cascade-item-3,
-  .cascade-item-4 {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .cascade-item-4,
+  .dashboard-cascade-enter,
+  .welcome-transition-card {
+    animation: simpleFade 200ms ease forwards !important;
+    transform: none !important;
   }
+
+  .aurora-orb,
+  .login-hero-badge,
+  .hero-clock-dot,
+  .shake-form {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .btn-login-submit,
+  .role-tab-btn,
+  .btn-hero-action,
+  .login-input-icon-btn,
+  .bottom-nav-item,
+  .scale-press {
+    transform: none !important;
+  }
+}
+
+@keyframes simpleFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
