@@ -365,20 +365,20 @@ class LoginView {
       card?.classList.add('card-visible');
     });
 
-    // 2. Mulai animasi bilah progres setelah kartu mendarat secara anggun (250ms)
+    // 2. Mulai animasi bilah progres setelah kartu mendarat secara anggun (200ms)
     setTimeout(() => {
       const bar = document.getElementById('welcomeProgressBar');
       if (bar) bar.style.width = '100%';
-    }, 250);
+    }, 200);
 
-    // 3. Saat progres mendekati penuh (1400ms), ubah teks status menjadi siap
+    // 3. Saat progres mendekati penuh (1150ms), ubah teks status menjadi siap
     setTimeout(() => {
       const hint = document.getElementById('welcomeStatusHint');
       if (hint) {
         hint.style.color = '#10B981';
         hint.textContent = 'Presensi siap! Membuka beranda...';
       }
-    }, 1400);
+    }, 1150);
 
     // 4. KUNCI KEHALUSAN (Crossfade Handover): Render dashboard di latar belakang terlebih dahulu
     setTimeout(() => {
@@ -387,18 +387,18 @@ class LoginView {
       // Render dashboard sekarang di DOM (masih tertutup lapisan overlay, sehingga bebas kedipan/flash)
       App.login(user, true);
 
-      // 5. Beri jeda 60ms agar browser selesai menata tata letak (layout layouting)
+      // 5. Beri jeda 40ms agar browser selesai menata tata letak (layout reflow)
       setTimeout(() => {
         const card = document.getElementById('welcomeTransitionCard');
         card?.classList.add('card-exit');
         overlay.classList.add('overlay-fade-out');
 
-        // 6. Hapus overlay dari DOM HANYA setelah animasi memudar selesai 100% (550ms)
+        // 6. Hapus overlay dari DOM setelah animasi memudar selesai (280ms)
         setTimeout(() => {
           overlay.remove();
-        }, 550);
-      }, 60);
-    }, 1750);
+        }, 280);
+      }, 40);
+    }, 1420);
   }
 
   static triggerShake() {

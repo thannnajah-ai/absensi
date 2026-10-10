@@ -57,12 +57,13 @@
   --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
   --shadow-sheet: 0 -4px 20px rgba(15, 23, 42, 0.12);
 
-  /* Motion & Animations (from design(3).md) */
+  /* Motion & Animations (Emil Kowalski Design Engineering tokens) */
   --motion-fast: 140ms;
   --motion-standard: 220ms;
   --motion-emphasis: 280ms;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* Base Reset */
@@ -172,7 +173,7 @@ html, body {
   cursor: pointer;
   background: transparent;
   color: var(--text-secondary);
-  transition: all var(--motion-fast) var(--ease-out);
+  transition: background-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out);
 }
 
 .role-btn.active {
@@ -263,7 +264,7 @@ html, body {
   background: transparent;
   width: 100%;
   text-align: left;
-  transition: all var(--motion-fast) var(--ease-out);
+  transition: background-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out);
 }
 
 .admin-nav-item:hover {
@@ -336,6 +337,10 @@ html, body {
   }
 }
 
+.scale-press {
+  transition: transform 160ms var(--ease-out);
+}
+
 .scale-press:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
