@@ -65,8 +65,8 @@ class StudentView {
     const hasOut = !!today.out;
     const pendingOffline = offlineQueue.length > 0;
 
-    const inTime = today.in ? new Date(today.in.server_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : 'Belum Absen';
-    const outTime = today.out ? new Date(today.out.server_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : 'Belum Absen';
+    const inTime = today.in ? new Date(today.in.server_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '--:--';
+    const outTime = today.out ? new Date(today.out.server_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '--:--';
 
     return `
       <!-- Greeting Header -->
@@ -112,17 +112,21 @@ class StudentView {
           <div class="status-today-box">
             <div class="status-label-group">
               <span class="status-title">Absen Masuk</span>
-              <span class="status-value">${inTime}</span>
+              <span class="status-value ${!hasIn ? 'empty' : ''}">${inTime}</span>
             </div>
-            ${today.in ? `<span class="badge badge-${today.in.status}">${today.in.status === 'on_time' ? 'Tepat Waktu' : today.in.status === 'late' ? 'Terlambat' : 'Di Luar Area'}</span>` : '<span class="badge badge-neutral">Belum</span>'}
+            <div class="status-badge-wrap">
+              ${today.in ? `<span class="badge badge-${today.in.status}">${today.in.status === 'on_time' ? 'Tepat Waktu' : today.in.status === 'late' ? 'Terlambat' : 'Di Luar Area'}</span>` : '<span class="badge badge-neutral">Belum Absen</span>'}
+            </div>
           </div>
 
           <div class="status-today-box">
             <div class="status-label-group">
               <span class="status-title">Absen Pulang</span>
-              <span class="status-value">${outTime}</span>
+              <span class="status-value ${!hasOut ? 'empty' : ''}">${outTime}</span>
             </div>
-            ${today.out ? `<span class="badge badge-success">Selesai</span>` : '<span class="badge badge-neutral">Belum</span>'}
+            <div class="status-badge-wrap">
+              ${today.out ? `<span class="badge badge-success">Selesai</span>` : '<span class="badge badge-neutral">Belum Absen</span>'}
+            </div>
           </div>
         </div>
 
