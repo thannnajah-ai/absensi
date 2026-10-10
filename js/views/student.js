@@ -115,7 +115,7 @@ class StudentView {
               <span class="status-value ${!hasIn ? 'empty' : ''}">${inTime}</span>
             </div>
             <div class="status-badge-wrap">
-              ${today.in ? `<span class="badge badge-${today.in.status}">${today.in.status === 'on_time' ? 'Tepat Waktu' : today.in.status === 'late' ? 'Terlambat' : 'Di Luar Area'}</span>` : '<span class="badge badge-neutral">Belum Absen</span>'}
+              ${today.in ? `<span class="badge badge-${today.in.status}">${today.in.status === 'on_time' ? 'Tepat Waktu' : today.in.status === 'approved' ? 'Hadir Sah' : today.in.status === 'rejected' ? 'Ditolak' : today.in.status === 'late' ? 'Terlambat' : 'Di Luar Area'}</span>` : '<span class="badge badge-neutral">Belum Absen</span>'}
             </div>
           </div>
 
@@ -175,7 +175,7 @@ class StudentView {
           </div>
         </div>
         <span class="badge badge-${item.status}">
-          ${item.status === 'on_time' ? 'Tepat Waktu' : item.status === 'late' ? 'Terlambat' : item.status === 'outside_area' ? 'Luar Area' : item.status}
+          ${item.status === 'on_time' ? 'Tepat Waktu' : item.status === 'approved' ? 'Hadir Sah' : item.status === 'rejected' ? 'Ditolak' : item.status === 'late' ? 'Terlambat' : 'Di Luar Area'}
         </span>
       </div>
     `).join('');
@@ -198,7 +198,7 @@ class StudentView {
                 <div style="flex: 1;">
                   <div style="display: flex; justify-content: space-between; align-items: baseline;">
                     <span style="font-weight: 700; font-size: 0.95rem;">Absen ${item.type === 'in' ? 'Masuk' : 'Pulang'}</span>
-                    <span class="badge badge-${item.status}">${item.status === 'on_time' ? 'Tepat Waktu' : item.status === 'late' ? 'Terlambat' : 'Di Luar Area'}</span>
+                    <span class="badge badge-${item.status}">${item.status === 'on_time' ? 'Tepat Waktu' : item.status === 'approved' ? 'Hadir Sah' : item.status === 'rejected' ? 'Ditolak' : item.status === 'late' ? 'Terlambat' : 'Di Luar Area'}</span>
                   </div>
                   <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px;">
                     Tanggal: ${new Date(item.server_time).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -210,6 +210,7 @@ class StudentView {
                     Jarak: ${GeoService.formatDistance(item.distance_m)} • Akurasi GPS: ±${item.accuracy_m}m
                   </div>
                   ${item.outside_reason ? `<div style="font-size: 0.8rem; color: var(--warning); margin-top: 6px; background: #FFF; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--warning-border);">Alasan Luar Area: "${item.outside_reason}"</div>` : ''}
+                  ${item.review_note ? `<div style="font-size: 0.8rem; color: var(--primary-900); margin-top: 6px; background: var(--primary-50); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--primary-100);"><b>Catatan Verifikasi Admin:</b> ${item.review_note}</div>` : ''}
                   ${item.flags?.synced_from_offline ? `<div style="font-size: 0.75rem; color: var(--info); margin-top: 4px; font-weight: 600;">Status: Sinkronisasi Tertunda (Offline)</div>` : ''}
                 </div>
               </div>

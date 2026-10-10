@@ -9,6 +9,23 @@ class AdminView {
   static currentFilterStatus = 'all';
   static searchQuery = '';
 
+  static getStatusBadgeHtml(status) {
+    switch (status) {
+      case 'on_time':
+        return '<span class="badge badge-on_time">Tepat Waktu</span>';
+      case 'late':
+        return '<span class="badge badge-late">Terlambat</span>';
+      case 'outside_area':
+        return '<span class="badge badge-outside_area">Di Luar Area</span>';
+      case 'approved':
+        return '<span class="badge badge-success">Hadir Sah (Disetujui)</span>';
+      case 'rejected':
+        return '<span class="badge badge-danger">Ditolak</span>';
+      default:
+        return `<span class="badge badge-neutral">${status || '-'}</span>`;
+    }
+  }
+
   static render(container) {
     const pendingReviewCount = this.getPendingReviewCount();
 
@@ -109,7 +126,7 @@ class AdminView {
     const todayAttendance = allAttendance.filter(a => a.server_time.startsWith(todayStr) && a.type === 'in');
 
     const totalHadir = todayAttendance.length;
-    const tepatWaktu = todayAttendance.filter(a => a.status === 'on_time').length;
+    const tepatWaktu = todayAttendance.filter(a => a.status === 'on_time' || a.status === 'approved').length;
     const terlambat = todayAttendance.filter(a => a.status === 'late').length;
     const luarArea = todayAttendance.filter(a => a.status === 'outside_area').length;
     const belumHadir = Math.max(0, students.length - totalHadir);
@@ -194,9 +211,9 @@ class AdminView {
                       <td><b>${att.type === 'in' ? 'Masuk' : 'Pulang'}</b></td>
                       <td class="tabular-nums">${new Date(att.server_time).toLocaleTimeString('id-ID')} WIB</td>
                       <td>${GeoService.formatDistance(att.distance_m)}</td>
-                      <td><span class="badge badge-${att.status}">${att.status}</span></td>
+                      <td>${AdminView.getStatusBadgeHtml(att.status)}</td>
                       <td style="display: flex; gap: 6px;">
-                        <button class="btn btn-sm btn-outline" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
+                        <button class="btn btn-sm btn-outline scale-press" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
                         <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)}</button>
                       </td>
                     </tr>
@@ -304,10 +321,10 @@ class AdminView {
                     <td><b>${att.type === 'in' ? 'Masuk' : 'Pulang'}</b></td>
                     <td class="tabular-nums">${new Date(att.server_time).toLocaleDateString('id-ID')} ${new Date(att.server_time).toLocaleTimeString('id-ID')}</td>
                     <td>${GeoService.formatDistance(att.distance_m)}</td>
-                    <td><span class="badge badge-${att.status}">${att.status}</span></td>
+                    <td>${AdminView.getStatusBadgeHtml(att.status)}</td>
                     <td style="display: flex; gap: 6px;">
-                      <button class="btn btn-sm btn-outline" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
-                      <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)} Hapus</button>
+                      <button class="btn btn-sm btn-outline scale-press" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
+                      <button class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)} Hapus</button>
                     </td>
                   </tr>
                 `;
@@ -347,20 +364,35 @@ class AdminView {
                 </tr>
               </thead>
               <tbody>
-                ${outsideAreaList.length === 0 ? '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">Tidak ada absensi luar radius yang menunggu tinjauan.</td></tr>' : ''}
+                ${outsideAreaList.length === 0 ? '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Tidak ada absensi luar radius yang menunggu tinjauan.</td></tr>' : ''}
                 ${outsideAreaList.map(a => {
                   const s = DB.getProfileById(a.user_id);
                   return `
                     <tr>
-                      <td><img src="${a.selfie_path}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover;" /></td>
-                      <td><b>${s?.full_name}</b><br><span style="font-size: 0.78rem; color: var(--text-muted);">${s?.class_name} • NIS: ${s?.nis}</span></td>
+                      <td>
+                        <img src="${a.selfie_path}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--border);" onclick="AdminView.showDetailModal('${a.id}')" title="Klik untuk lihat detail" />
+                      </td>
+                      <td>
+                        <div style="cursor: pointer;" onclick="AdminView.showDetailModal('${a.id}')">
+                          <b>${s?.full_name || 'Siswa'}</b>
+                          <div style="font-size: 0.78rem; color: var(--text-muted);">${s?.class_name || '-'} • NIS: ${s?.nis || '-'}</div>
+                        </div>
+                      </td>
                       <td class="tabular-nums">${new Date(a.server_time).toLocaleTimeString('id-ID')} WIB</td>
-                      <td><b>${GeoService.formatDistance(a.distance_m)}</b> (±${a.accuracy_m}m)</td>
-                      <td style="max-width: 240px; font-style: italic; color: #78350F;">"${a.outside_reason || 'Tidak ada alasan'}"</td>
+                      <td>
+                        <b>${GeoService.formatDistance(a.distance_m)}</b>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Akurasi: ±${a.accuracy_m}m</div>
+                      </td>
+                      <td style="max-width: 250px;">
+                        <div style="background: #FFFBEB; padding: 6px 10px; border-radius: 6px; border: 1px solid #FDE68A; font-size: 0.82rem; color: #78350F; font-style: italic;">
+                          "${a.outside_reason || 'Tidak ada alasan'}"
+                        </div>
+                      </td>
                       <td>
                         <div style="display: flex; gap: 6px;">
-                          <button class="btn btn-sm btn-success" onclick="AdminView.reviewAttendance('${a.id}', 'approved')">Terima (Sah)</button>
-                          <button class="btn btn-sm btn-danger" onclick="AdminView.reviewAttendance('${a.id}', 'rejected')">Tolak</button>
+                          <button class="btn btn-sm btn-primary scale-press" onclick="AdminView.showDetailModal('${a.id}')">Tinjau</button>
+                          <button class="btn btn-sm btn-success scale-press" onclick="AdminView.reviewAttendance('${a.id}', 'approved')">Terima</button>
+                          <button class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.reviewAttendance('${a.id}', 'rejected')">Tolak</button>
                         </div>
                       </td>
                     </tr>
@@ -729,9 +761,21 @@ class AdminView {
   }
 
   // --- Actions ---
-  static reviewAttendance(attId, newStatus) {
-    DB.updateAttendanceStatus(attId, newStatus, `Ditinjau oleh admin pada ${new Date().toLocaleTimeString('id-ID')}`);
-    App.showToast(`Absensi berhasil ditandai: ${newStatus.toUpperCase()}`, 'success');
+  static reviewAttendance(attId, newStatus, customNote = '') {
+    const note = customNote || (newStatus === 'approved' ? `Disetujui admin pada ${new Date().toLocaleTimeString('id-ID')}` : `Ditolak admin pada ${new Date().toLocaleTimeString('id-ID')}`);
+    DB.updateAttendanceStatus(attId, newStatus, note);
+    App.showToast(`Absensi berhasil ${newStatus === 'approved' ? 'disetujui sebagai Hadir Sah' : 'ditolak'}!`, 'success');
+    App.renderCurrentView();
+  }
+
+  static submitAttendanceReviewFromModal(attId, newStatus) {
+    const noteInput = document.getElementById('reviewNoteInput');
+    const note = noteInput ? noteInput.value.trim() : '';
+    const noteFinal = note || (newStatus === 'approved' ? `Disetujui admin sekolah pada ${new Date().toLocaleTimeString('id-ID')}` : `Ditolak admin sekolah pada ${new Date().toLocaleTimeString('id-ID')}`);
+    
+    DB.updateAttendanceStatus(attId, newStatus, noteFinal);
+    document.querySelector('.modal-backdrop')?.remove();
+    App.showToast(`Absensi berhasil ${newStatus === 'approved' ? 'disetujui sebagai Hadir Sah' : 'ditolak'}!`, 'success');
     App.renderCurrentView();
   }
 
@@ -972,37 +1016,76 @@ class AdminView {
     const att = DB.getAttendance().find(a => a.id === attId);
     if (!att) return;
     const student = DB.getProfileById(att.user_id);
+    const isPendingReview = att.status === 'outside_area';
 
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
     modal.innerHTML = `
-      <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-content" style="max-width: 540px;">
         <div class="modal-header">
           <div class="modal-title">Detail Catatan Absensi</div>
           <button class="modal-close-btn" onclick="this.closest('.modal-backdrop').remove()">&times;</button>
         </div>
         <div class="modal-body">
-          <div style="display: flex; gap: 16px;">
-            <img src="${att.selfie_path}" style="width: 140px; height: 140px; border-radius: var(--radius-input); object-fit: cover; border: 1px solid var(--border);" />
-            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem;">
-              <div style="font-size: 1.1rem; font-weight: 800;">${student?.full_name}</div>
-              <div><b>NIS:</b> ${student?.nis} • <b>Kelas:</b> ${student?.class_name}</div>
+          <div style="display: flex; gap: 16px; align-items: flex-start;">
+            <img src="${att.selfie_path}" alt="Selfie" style="width: 130px; height: 130px; border-radius: var(--radius-card); object-fit: cover; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.06); flex-shrink: 0;" />
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; flex: 1;">
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--primary-900);">${student?.full_name || 'Siswa'}</div>
+              <div><b>NIS:</b> ${student?.nis || '-'} • <b>Kelas:</b> ${student?.class_name || '-'}</div>
               <div><b>Tipe:</b> Absen ${att.type === 'in' ? 'Masuk' : 'Pulang'}</div>
-              <div><b>Status:</b> <span class="badge badge-${att.status}">${att.status}</span></div>
+              <div><b>Status:</b> ${AdminView.getStatusBadgeHtml(att.status)}</div>
+              ${att.review_note ? `<div style="font-size: 0.8rem; color: var(--text-secondary); background: var(--surface-alt); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border);"><b>Catatan Verifikasi:</b> ${att.review_note}</div>` : ''}
             </div>
           </div>
 
-          <div style="background: var(--surface-alt); padding: 14px; border-radius: var(--radius-input); font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
-            <div><b>Waktu Server Resmi:</b> ${new Date(att.server_time).toLocaleString('id-ID')} WIB</div>
-            <div><b>Koordinat:</b> ${att.lat}, ${att.lng}</div>
-            <div><b>Jarak ke Titik Sekolah:</b> ${GeoService.formatDistance(att.distance_m)}</div>
-            <div><b>Akurasi GPS Perangkat:</b> ±${att.accuracy_m} meter</div>
-            ${att.outside_reason ? `<div style="color: var(--warning); margin-top: 4px;"><b>Alasan Di Luar Area:</b> "${att.outside_reason}"</div>` : ''}
+          <div style="background: var(--surface-alt); padding: 14px; border-radius: var(--radius-card); font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px; margin-top: 14px; border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Waktu Server Resmi:</span>
+              <b>${new Date(att.server_time).toLocaleString('id-ID')} WIB</b>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Koordinat GPS:</span>
+              <code>${att.lat}, ${att.lng}</code>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Jarak ke Titik Sekolah:</span>
+              <b>${GeoService.formatDistance(att.distance_m)}</b>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">Akurasi Sensor Perangkat:</span>
+              <span>±${att.accuracy_m} meter</span>
+            </div>
+            ${att.outside_reason ? `
+            <div style="border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 2px;">
+              <b style="color: var(--warning);">Alasan Berada di Luar Radius:</b>
+              <div style="background: #FFF; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--warning-border); margin-top: 4px; font-style: italic; color: #78350F;">
+                "${att.outside_reason}"
+              </div>
+            </div>
+            ` : ''}
           </div>
+
+          ${isPendingReview ? `
+          <div style="background: var(--primary-50); border: 1px solid var(--primary-100); padding: 14px; border-radius: var(--radius-card); margin-top: 14px;">
+            <div style="font-weight: 700; font-size: 0.88rem; color: var(--primary-900); margin-bottom: 6px;">Keputusan Tinjauan Guru / Admin:</div>
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label class="form-label" style="font-size: 0.78rem;">Catatan Verifikasi (Opsional)</label>
+              <input type="text" id="reviewNoteInput" class="form-input" placeholder="Contoh: Terkonfirmasi mengikuti kegiatan OSIS di luar kampus" />
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-success scale-press" style="flex: 1;" onclick="AdminView.submitAttendanceReviewFromModal('${att.id}', 'approved')">
+                Setujui (Hadir Sah)
+              </button>
+              <button class="btn btn-outline scale-press" style="flex: 1; color: var(--danger); border-color: var(--danger);" onclick="AdminView.submitAttendanceReviewFromModal('${att.id}', 'rejected')">
+                Tolak Presensi
+              </button>
+            </div>
+          </div>
+          ` : ''}
         </div>
         <div class="modal-footer" style="display: flex; justify-content: space-between;">
-          <button class="btn btn-danger" onclick="AdminView.confirmDeleteAttendance('${att.id}', true)">${Icons.trash(16)} Hapus Catatan Ini</button>
-          <button class="btn btn-secondary" onclick="this.closest('.modal-backdrop').remove()">Tutup</button>
+          <button class="btn btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}', true)">${Icons.trash(14)} Hapus Catatan</button>
+          <button class="btn btn-secondary scale-press" onclick="this.closest('.modal-backdrop').remove()">Tutup</button>
         </div>
       </div>
     `;
