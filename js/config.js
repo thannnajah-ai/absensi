@@ -9,7 +9,9 @@ const AppConfig = {
   schoolName: 'SMAN 1 Teladan',
   appVersion: '1.1.0',
   supabaseUrl: 'https://dxrnpayzynimwelyglae.supabase.co',
-  supabaseAnonKey: 'sb_publishable_UDPYWT0jKe8gey7bwrEbrA_Z7CxWrMg'
+  supabaseAnonKey: 'sb_publishable_UDPYWT0jKe8gey7bwrEbrA_Z7CxWrMg',
+  telegramBotToken: '8798424586:AAFpMPg8MtFlMmLHdpZ8OA3R5cyWSzznsmg',
+  telegramBotUsername: 'AbsenM3INBot'
 };
 
 

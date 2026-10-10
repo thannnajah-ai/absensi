@@ -566,6 +566,9 @@ class StudentView {
         this.showSuccessConfirmation(attendanceRecord, true);
       } else {
         DB.addAttendance(attendanceRecord);
+        if (typeof TelegramService !== 'undefined') {
+          TelegramService.runWorker().catch(e => console.error('Telegram worker error:', e));
+        }
         this.closeCheckinModal();
         this.showSuccessConfirmation(attendanceRecord, false);
       }

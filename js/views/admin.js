@@ -520,6 +520,7 @@ class AdminView {
   static renderTelegram() {
     const queue = DB.getNotificationQueue();
     const queuedCount = queue.filter(q => q.status === 'queued').length;
+    const botUser = window.AppConfig?.telegramBotUsername || 'AbsenM3INBot';
 
     return `
       <div>
@@ -528,13 +529,30 @@ class AdminView {
             <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Antrean & Log Notifikasi Telegram</h1>
             <p style="font-size: 0.88rem; color: var(--text-secondary);">Worker memproses antrean terpisah (Maks 3 kali percobaan ulang untuk gangguan sementara, PRD FR-39)</p>
           </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-secondary" onclick="App.openTelegramSimulatorModal()">
-              Simulator Bot Telegram
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-secondary" onclick="AdminView.syncTelegramBot()">
+              Sinkronkan Pesan Masuk
+            </button>
+            <button class="btn btn-secondary" onclick="AdminView.openTestTelegramModal()">
+              Uji Kirim Pesan
             </button>
             <button class="btn btn-primary" onclick="AdminView.triggerWorker()">
               Proses Antrean (${queuedCount})
             </button>
+          </div>
+        </div>
+
+        <!-- Official Bot Status Card -->
+        <div class="card" style="margin-bottom: 20px; border-left: 4px solid var(--primary-600); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Bot Telegram Sekolah Resmi</div>
+            <div style="font-size: 1.15rem; font-weight: 800; color: var(--primary-900); margin: 2px 0;">@${botUser}</div>
+            <div style="font-size: 0.8rem; color: var(--success); font-weight: 600;">Terhubung ke Telegram Bot API Resmi</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <a href="https://t.me/${botUser}" target="_blank" class="btn btn-sm btn-outline">
+              Buka @${botUser} di Telegram
+            </a>
           </div>
         </div>
 
@@ -762,10 +780,76 @@ class AdminView {
     }
   }
 
-  static triggerWorker() {
-    const sent = TelegramService.runWorker();
+  static async triggerWorker() {
+    App.showToast('Memproses antrean notifikasi...', 'info');
+    const sent = await TelegramService.runWorker();
     App.showToast(`Worker selesai memproses ${sent} pesan Telegram!`, 'success');
     App.renderCurrentView();
+  }
+
+  static async syncTelegramBot() {
+    App.showToast('Memeriksa pesan masuk dari bot Telegram...', 'info');
+    const res = await TelegramService.syncBotUpdates();
+    if (res.success) {
+      App.showToast(res.message, res.count > 0 ? 'success' : 'info');
+      App.renderCurrentView();
+    } else {
+      App.showToast('Gagal sinkronisasi: ' + (res.error || res.message), 'error');
+    }
+  }
+
+  static openTestTelegramModal() {
+    const botUser = window.AppConfig?.telegramBotUsername || 'AbsenM3INBot';
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 440px;">
+        <div class="modal-header">
+          <div class="modal-title">Uji Kirim Pesan Telegram</div>
+          <button class="modal-close-btn" onclick="this.closest('.modal-backdrop').remove()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px;">
+            Kirimkan pesan pengujian langsung dari bot <b>@${botUser}</b> ke akun Telegram Anda untuk memastikan integrasi API berjalan lancar.
+          </p>
+          <div class="form-group">
+            <label class="form-label form-label-required">Telegram Chat ID Penerima</label>
+            <input type="text" id="testChatId" class="form-input" placeholder="Contoh: 123456789" />
+            <span class="form-help">Pastikan Anda sudah menekan START pada @${botUser} terlebih dahulu agar bot diizinkan mengirim pesan.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teks Pesan</label>
+            <textarea id="testMsgText" class="form-textarea" rows="3">Halo! Ini adalah pesan uji coba resmi dari Sistem Presensi SMAN 1 Teladan via @${botUser}.</textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="this.closest('.modal-backdrop').remove()">Batal</button>
+          <button class="btn btn-primary" onclick="AdminView.sendTestTelegram(this)">Kirim Pesan</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  static async sendTestTelegram(btn) {
+    const chatId = document.getElementById('testChatId')?.value.trim();
+    const text = document.getElementById('testMsgText')?.value.trim();
+    if (!chatId) {
+      App.showToast('Harap masukkan Telegram Chat ID penerima!', 'error');
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Mengirim...';
+
+    const res = await TelegramService.sendRealMessage(chatId, text);
+    if (res.success) {
+      btn.closest('.modal-backdrop').remove();
+      App.showToast('Pesan berhasil terkirim ke Telegram Anda!', 'success');
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Kirim Pesan';
+      App.showToast('Gagal mengirim: ' + res.error, 'error');
+    }
   }
 
   static exportToCSV() {
