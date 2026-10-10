@@ -7,7 +7,50 @@ class AdminView {
   static currentTab = 'ringkasan';
   static currentFilterClass = 'all';
   static currentFilterStatus = 'all';
+  static currentFilterDate = 'all';
   static searchQuery = '';
+
+  static getAvailableClasses() {
+    const students = DB.getProfiles().filter(p => p.role === 'student');
+    const classes = Array.from(new Set(students.map(s => s.class_name).filter(Boolean))).sort();
+    return classes.length > 0 ? classes : ['XII-IPA-1', 'XII-IPS-2'];
+  }
+
+  static getFilteredAttendanceList() {
+    let list = DB.getAttendance();
+
+    if (this.currentFilterClass !== 'all') {
+      list = list.filter(a => {
+        const s = DB.getProfileById(a.user_id);
+        return s?.class_name === this.currentFilterClass;
+      });
+    }
+
+    if (this.currentFilterStatus !== 'all') {
+      list = list.filter(a => a.status === this.currentFilterStatus);
+    }
+
+    if (this.currentFilterDate === 'today') {
+      const todayStr = new Date().toDateString();
+      list = list.filter(a => new Date(a.server_time).toDateString() === todayStr);
+    } else if (this.currentFilterDate === 'this_month') {
+      const now = new Date();
+      list = list.filter(a => {
+        const d = new Date(a.server_time);
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      });
+    }
+
+    if (this.searchQuery) {
+      const q = this.searchQuery.toLowerCase();
+      list = list.filter(a => {
+        const s = DB.getProfileById(a.user_id);
+        return s?.full_name.toLowerCase().includes(q) || s?.nis?.includes(q);
+      });
+    }
+
+    return list;
+  }
 
   static getStatusBadgeHtml(status) {
     switch (status) {
@@ -229,26 +272,8 @@ class AdminView {
 
   // --- TAB 2: Rekap Absensi & Ekspor CSV (PRD FR-13 & FR-14) ---
   static renderRekap() {
-    let list = DB.getAttendance();
-
-    if (this.currentFilterClass !== 'all') {
-      list = list.filter(a => {
-        const s = DB.getProfileById(a.user_id);
-        return s?.class_name === this.currentFilterClass;
-      });
-    }
-
-    if (this.currentFilterStatus !== 'all') {
-      list = list.filter(a => a.status === this.currentFilterStatus);
-    }
-
-    if (this.searchQuery) {
-      const q = this.searchQuery.toLowerCase();
-      list = list.filter(a => {
-        const s = DB.getProfileById(a.user_id);
-        return s?.full_name.toLowerCase().includes(q) || s?.nis?.includes(q);
-      });
-    }
+    const list = this.getFilteredAttendanceList();
+    const availableClasses = this.getAvailableClasses();
 
     return `
       <div>
@@ -258,11 +283,14 @@ class AdminView {
             <p style="font-size: 0.88rem; color: var(--text-secondary);">Daftar seluruh kehadiran siswa (semua wali kelas dapat memantau seluruh kelas, PRD Bagian 3)</p>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn btn-danger" onclick="AdminView.promptResetTodayAttendance()">
-              ${Icons.trash(16)} Reset Absensi Hari Ini
+            <button class="btn btn-outline scale-press" onclick="AdminView.openPrintReportModal()">
+              ${Icons.fileText(16)} Cetak Rekap / PDF
             </button>
-            <button class="btn btn-success" onclick="AdminView.exportToCSV()">
-              ${Icons.download(16)} Ekspor CSV
+            <button class="btn btn-success scale-press" onclick="AdminView.exportToCSV()">
+              ${Icons.download(16)} Ekspor CSV (${list.length})
+            </button>
+            <button class="btn btn-danger scale-press" onclick="AdminView.promptResetTodayAttendance()">
+              ${Icons.trash(16)} Reset Hari Ini
             </button>
           </div>
         </div>
@@ -270,15 +298,22 @@ class AdminView {
         <!-- Filter Bar -->
         <div class="card" style="padding: 14px 18px;">
           <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-            <input type="text" class="form-input" style="max-width: 260px;" placeholder="Cari nama atau NIS..." value="${this.searchQuery}" oninput="AdminView.searchQuery = this.value; AdminView.setTab('rekap');" />
+            <input type="text" class="form-input" style="max-width: 240px;" placeholder="Cari nama atau NIS..." value="${this.searchQuery}" oninput="AdminView.searchQuery = this.value; AdminView.setTab('rekap');" />
             
-            <select class="form-select" style="max-width: 180px;" onchange="AdminView.currentFilterClass = this.value; AdminView.setTab('rekap');">
+            <select class="form-select" style="max-width: 170px;" onchange="AdminView.currentFilterClass = this.value; AdminView.setTab('rekap');">
               <option value="all" ${this.currentFilterClass === 'all' ? 'selected' : ''}>Semua Kelas</option>
-              <option value="XII-IPA-1" ${this.currentFilterClass === 'XII-IPA-1' ? 'selected' : ''}>XII-IPA-1</option>
-              <option value="XII-IPS-2" ${this.currentFilterClass === 'XII-IPS-2' ? 'selected' : ''}>XII-IPS-2</option>
+              ${availableClasses.map(c => `
+                <option value="${c}" ${this.currentFilterClass === c ? 'selected' : ''}>${c}</option>
+              `).join('')}
             </select>
 
-            <select class="form-select" style="max-width: 180px;" onchange="AdminView.currentFilterStatus = this.value; AdminView.setTab('rekap');">
+            <select class="form-select" style="max-width: 170px;" onchange="AdminView.currentFilterDate = this.value; AdminView.setTab('rekap');">
+              <option value="all" ${this.currentFilterDate === 'all' ? 'selected' : ''}>Semua Tanggal</option>
+              <option value="today" ${this.currentFilterDate === 'today' ? 'selected' : ''}>Hari Ini</option>
+              <option value="this_month" ${this.currentFilterDate === 'this_month' ? 'selected' : ''}>Bulan Ini</option>
+            </select>
+
+            <select class="form-select" style="max-width: 170px;" onchange="AdminView.currentFilterStatus = this.value; AdminView.setTab('rekap');">
               <option value="all" ${this.currentFilterStatus === 'all' ? 'selected' : ''}>Semua Status</option>
               <option value="on_time" ${this.currentFilterStatus === 'on_time' ? 'selected' : ''}>Tepat Waktu</option>
               <option value="late" ${this.currentFilterStatus === 'late' ? 'selected' : ''}>Terlambat</option>
@@ -657,31 +692,46 @@ class AdminView {
         <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Pengaturan Lokasi & Jam Sekolah</h1>
         <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 24px;">Kelola titik koordinat sekolah, radius toleransi GPS, dan jam masuk/pulang.</p>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
           <!-- Form Settings -->
           <div class="card">
-            <div class="card-title">Parameter Kehadiran</div>
+            <div class="card-title">Parameter Kehadiran & Geofencing</div>
 
             <div class="form-group">
               <label class="form-label form-label-required">Nama Sekolah / Lokasi</label>
               <input type="text" id="siteName" class="form-input" value="${site.name}" />
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-              <div class="form-group">
-                <label class="form-label form-label-required">Latitude</label>
-                <input type="number" step="0.000001" id="siteLat" class="form-input" value="${site.lat}" />
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                <label class="form-label form-label-required" style="margin-bottom: 0;">Titik Koordinat Gerbang</label>
+                <button type="button" class="btn btn-sm btn-outline scale-press" style="padding: 3px 8px; font-size: 0.75rem; min-height: 28px; display: inline-flex; align-items: center; gap: 4px;" onclick="AdminView.detectCurrentGpsForSite()">
+                  ${Icons.mapPin(14)} <span>Gunakan GPS Saya</span>
+                </button>
               </div>
-              <div class="form-group">
-                <label class="form-label form-label-required">Longitude</label>
-                <input type="number" step="0.000001" id="siteLng" class="form-input" value="${site.lng}" />
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">Latitude</span>
+                  <input type="number" step="0.000001" id="siteLat" class="form-input tabular-nums" value="${site.lat}" />
+                </div>
+                <div>
+                  <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">Longitude</span>
+                  <input type="number" step="0.000001" id="siteLng" class="form-input tabular-nums" value="${site.lng}" />
+                </div>
               </div>
+              <span class="form-help">Klik pada peta atau geser pin marker untuk memindahkan koordinat gerbang secara visual.</span>
             </div>
 
             <div class="form-group">
-              <label class="form-label form-label-required">Radius Valid (Meter)</label>
-              <input type="number" id="siteRadius" class="form-input" value="${site.radius_m}" />
-              <span class="form-help">Default 100 meter (PRD FR-8). Di luar radius wajib mengisi alasan.</span>
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <label class="form-label form-label-required">Radius Valid Geofencing</label>
+                <span id="radiusValueDisplay" style="font-size: 0.82rem; font-weight: 700; color: var(--primary-700);">${site.radius_m} meter</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <input type="range" id="siteRadiusSlider" min="20" max="500" step="5" value="${site.radius_m}" class="form-range" style="flex: 1;" />
+                <input type="number" id="siteRadius" class="form-input tabular-nums" style="width: 90px; text-align: center;" value="${site.radius_m}" min="10" max="1000" />
+              </div>
+              <span class="form-help">Default 100m (PRD FR-8). Di luar radius ini, siswa wajib menyertakan alasan sah untuk ditinjau admin.</span>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
@@ -699,7 +749,7 @@ class AdminView {
               </div>
             </div>
 
-            <button class="btn btn-primary" style="margin-top: 14px;" onclick="AdminView.saveSiteSettings()">
+            <button class="btn btn-primary scale-press" style="margin-top: 14px;" onclick="AdminView.saveSiteSettings()">
               Simpan Perubahan Lokasi & Jadwal
             </button>
           </div>
@@ -708,10 +758,13 @@ class AdminView {
           <div class="card">
             <div class="card-header">
               <span class="card-title">Peta Radius Sekolah</span>
-              <span class="badge badge-info">${site.radius_m}m Radius</span>
+              <span class="badge badge-info" id="siteRadiusBadge">${site.radius_m}m Radius</span>
             </div>
-            <div id="siteMapContainer" style="height: 380px; width: 100%; border-radius: var(--radius-input); border: 1px solid var(--border);"></div>
-            <span class="form-help">Klik pada peta untuk memindahkan titik koordinat sekolah secara langsung.</span>
+            <div id="siteMapContainer" style="height: 420px; width: 100%; border-radius: var(--radius-input); border: 1px solid var(--border);"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+              <span>Geser pin marker atau klik di peta untuk mengatur lokasi gerbang sekolah.</span>
+              <span style="font-weight: 600; color: var(--primary-700);">Live Leaflet GPS</span>
+            </div>
           </div>
         </div>
       </div>
@@ -725,6 +778,7 @@ class AdminView {
 
     if (this.leafletMap) {
       this.leafletMap.remove();
+      this.leafletMap = null;
     }
 
     this.leafletMap = L.map('siteMapContainer').setView([site.lat, site.lng], 16);
@@ -734,26 +788,114 @@ class AdminView {
       attribution: '© OpenStreetMap'
     }).addTo(this.leafletMap);
 
-    const marker = L.marker([site.lat, site.lng]).addTo(this.leafletMap)
-      .bindPopup(`<b>${site.name}</b><br>Titik Gerbang Masuk`)
+    const marker = L.marker([site.lat, site.lng], { draggable: true }).addTo(this.leafletMap)
+      .bindPopup(`<b>${site.name}</b><br>Gerbang Utama (Geser untuk ubah lokasi)`)
       .openPopup();
 
     const circle = L.circle([site.lat, site.lng], {
       color: '#1D4ED8',
       fillColor: '#3B82F6',
-      fillOpacity: 0.25,
+      fillOpacity: 0.22,
       radius: site.radius_m
     }).addTo(this.leafletMap);
 
-    // On click map, update coordinate inputs
+    const latInput = document.getElementById('siteLat');
+    const lngInput = document.getElementById('siteLng');
+    const radiusInput = document.getElementById('siteRadius');
+    const radiusSlider = document.getElementById('siteRadiusSlider');
+    const radiusBadge = document.getElementById('siteRadiusBadge');
+    const radiusDisplay = document.getElementById('radiusValueDisplay');
+
+    // Drag marker updates coordinates & circle live
+    marker.on('drag', (e) => {
+      const pos = e.target.getLatLng();
+      const lat = parseFloat(pos.lat.toFixed(6));
+      const lng = parseFloat(pos.lng.toFixed(6));
+      circle.setLatLng([lat, lng]);
+      if (latInput) latInput.value = lat;
+      if (lngInput) lngInput.value = lng;
+    });
+
+    marker.on('dragend', (e) => {
+      const pos = e.target.getLatLng();
+      const lat = parseFloat(pos.lat.toFixed(6));
+      const lng = parseFloat(pos.lng.toFixed(6));
+      marker.bindPopup(`<b>${document.getElementById('siteName')?.value || site.name}</b><br>Koordinat: ${lat}, ${lng}`).openPopup();
+    });
+
+    // Click map moves marker and circle
     this.leafletMap.on('click', (e) => {
       const lat = parseFloat(e.latlng.lat.toFixed(6));
       const lng = parseFloat(e.latlng.lng.toFixed(6));
-      document.getElementById('siteLat').value = lat;
-      document.getElementById('siteLng').value = lng;
+      if (latInput) latInput.value = lat;
+      if (lngInput) lngInput.value = lng;
       marker.setLatLng([lat, lng]);
       circle.setLatLng([lat, lng]);
+      marker.bindPopup(`<b>${document.getElementById('siteName')?.value || site.name}</b><br>Koordinat: ${lat}, ${lng}`).openPopup();
     });
+
+    // Synchronized radius changes
+    const onRadiusChange = (val) => {
+      const r = parseInt(val, 10);
+      if (!isNaN(r) && r > 0) {
+        circle.setRadius(r);
+        if (radiusBadge) radiusBadge.textContent = `${r}m Radius`;
+        if (radiusDisplay) radiusDisplay.textContent = `${r} meter`;
+        if (radiusInput && parseInt(radiusInput.value, 10) !== r) radiusInput.value = r;
+        if (radiusSlider && parseInt(radiusSlider.value, 10) !== r) radiusSlider.value = r;
+      }
+    };
+
+    if (radiusSlider) {
+      radiusSlider.addEventListener('input', (e) => onRadiusChange(e.target.value));
+    }
+    if (radiusInput) {
+      radiusInput.addEventListener('input', (e) => onRadiusChange(e.target.value));
+    }
+
+    // Manual typing in lat/lng inputs updates marker & circle
+    const onCoordInput = () => {
+      const lat = parseFloat(latInput?.value);
+      const lng = parseFloat(lngInput?.value);
+      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        marker.setLatLng([lat, lng]);
+        circle.setLatLng([lat, lng]);
+        this.leafletMap.panTo([lat, lng]);
+      }
+    };
+    if (latInput) latInput.addEventListener('input', onCoordInput);
+    if (lngInput) lngInput.addEventListener('input', onCoordInput);
+  }
+
+  static detectCurrentGpsForSite() {
+    if (!navigator.geolocation) {
+      App.showToast('Browser Anda tidak mendukung geolokasi GPS.', 'danger');
+      return;
+    }
+    App.showToast('Mendeteksi sinyal GPS lokasi Anda...', 'info');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = parseFloat(pos.coords.latitude.toFixed(6));
+        const lng = parseFloat(pos.coords.longitude.toFixed(6));
+        const acc = Math.round(pos.coords.accuracy);
+
+        const latInput = document.getElementById('siteLat');
+        const lngInput = document.getElementById('siteLng');
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+
+        if (this.leafletMap) {
+          this.leafletMap.setView([lat, lng], 17);
+          this.initSiteMap();
+        }
+
+        App.showToast(`Titik koordinat berhasil disetel dari GPS (Akurasi: ±${acc}m)! Klik Simpan untuk memperbarui.`, 'success');
+      },
+      (err) => {
+        App.showToast(`Gagal membaca GPS: ${err.message}`, 'danger');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   }
 
   static saveSiteSettings() {
@@ -765,12 +907,25 @@ class AdminView {
     const timeOut = document.getElementById('siteTimeOut').value;
     const tolerance = parseInt(document.getElementById('siteTolerance').value, 10);
 
+    if (!name) {
+      App.showToast('Nama sekolah / lokasi tidak boleh kosong.', 'danger');
+      return;
+    }
+    if (isNaN(lat) || isNaN(lng)) {
+      App.showToast('Titik koordinat Latitude & Longitude tidak valid.', 'danger');
+      return;
+    }
+    if (isNaN(radius) || radius <= 0) {
+      App.showToast('Radius presensi harus berupa angka positif.', 'danger');
+      return;
+    }
+
     DB.updateSite({
       name, lat, lng, radius_m: radius, time_in: timeIn, time_out: timeOut, late_tolerance_min: tolerance
     });
 
     App.showToast('Pengaturan lokasi & jadwal berhasil disimpan!', 'success');
-    this.render(document.getElementById('appContent'));
+    App.renderCurrentView();
   }
 
   // --- Actions ---
@@ -1016,21 +1171,39 @@ class AdminView {
   }
 
   static exportToCSV() {
-    const list = DB.getAttendance();
-    let csv = 'ID,NIS,Nama Siswa,Kelas,Tipe,Waktu Server,Jarak (m),Akurasi GPS (m),Status,Alasan Luar Area\n';
+    const list = this.getFilteredAttendanceList();
+    if (list.length === 0) {
+      App.showToast('Tidak ada data absensi untuk diekspor!', 'warning');
+      return;
+    }
 
-    list.forEach(a => {
+    let csv = '\uFEFFNo,ID,NIS,Nama Siswa,Kelas,Tipe,Tanggal,Jam Server,Jarak (m),Akurasi GPS (m),Status,Alasan Luar Area\n';
+
+    list.forEach((a, idx) => {
       const s = DB.getProfileById(a.user_id);
+      const d = new Date(a.server_time);
+      const dateStr = d.toLocaleDateString('id-ID');
+      const timeStr = d.toLocaleTimeString('id-ID') + ' WIB';
+      const statusIndo = {
+        'on_time': 'Tepat Waktu',
+        'late': 'Terlambat',
+        'outside_area': 'Di Luar Area',
+        'approved': 'Hadir Sah (Disetujui)',
+        'rejected': 'Ditolak'
+      }[a.status] || a.status;
+
       const row = [
+        idx + 1,
         a.id,
         `"${s?.nis || ''}"`,
         `"${s?.full_name || ''}"`,
         `"${s?.class_name || ''}"`,
-        a.type,
-        `"${a.server_time}"`,
+        a.type === 'in' ? 'Masuk' : 'Pulang',
+        `"${dateStr}"`,
+        `"${timeStr}"`,
         a.distance_m,
         a.accuracy_m,
-        a.status,
+        `"${statusIndo}"`,
         `"${(a.outside_reason || '').replace(/"/g, '""')}"`
       ];
       csv += row.join(',') + '\n';
@@ -1040,9 +1213,156 @@ class AdminView {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `rekap_absensi_${new Date().toISOString().split('T')[0]}.csv`;
+    const classTag = this.currentFilterClass !== 'all' ? `_${this.currentFilterClass}` : '';
+    a.download = `rekap_absensi${classTag}_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    App.showToast('Berkas CSV berhasil diekspor!', 'success');
+    App.showToast(`Berhasil mengekspor ${list.length} data absensi ke CSV!`, 'success');
+  }
+
+  static openPrintReportModal() {
+    const list = this.getFilteredAttendanceList();
+    const site = DB.getSite();
+    const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const total = list.length;
+    const onTime = list.filter(a => a.status === 'on_time').length;
+    const late = list.filter(a => a.status === 'late').length;
+    const outside = list.filter(a => a.status === 'outside_area').length;
+    const approved = list.filter(a => a.status === 'approved').length;
+    const rate = total > 0 ? Math.round(((onTime + approved) / total) * 100) : 0;
+
+    const modal = document.createElement('div');
+    modal.id = 'printReportModal';
+    modal.className = 'report-sheet-modal';
+    modal.innerHTML = `
+      <div class="report-modal-content">
+        <!-- Action Toolbar (hidden on print) -->
+        <div class="print-no-print" style="padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface-alt);">
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            ${Icons.fileText(18)}
+            <span>Pratinjau Dokumen Cetak / PDF</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-primary scale-press" style="display: inline-flex; align-items: center; gap: 6px;" onclick="window.print()">
+              ${Icons.download(16)} Cetak Dokumen / Simpan PDF
+            </button>
+            <button class="btn btn-secondary scale-press" onclick="document.getElementById('printReportModal').remove()">
+              Tutup
+            </button>
+          </div>
+        </div>
+
+        <!-- Official Report Sheet -->
+        <div class="report-sheet">
+          <!-- Kop Surat Resmi -->
+          <div class="report-kop">
+            <div class="report-kop-logo">
+              SMA
+            </div>
+            <div class="report-kop-text">
+              <div class="report-kop-instansi">PEMERINTAH DAERAH PROVINSI JAWA TIMUR • DINAS PENDIDIKAN</div>
+              <div class="report-kop-sekolah">${site.name.toUpperCase()}</div>
+              <div class="report-kop-alamat">Jalan Pendidikan No. 1 • Telp: (031) 555-0199 • Surel: tatausaha@sman1teladan.sch.id</div>
+            </div>
+          </div>
+
+          <!-- Judul Dokumen -->
+          <div class="report-title-block">
+            <div class="report-main-title">LAPORAN REKAPITULASI PRESENSI SISWA</div>
+            <div style="font-size: 0.78rem; color: #64748B; margin-top: 2px;">Tahun Ajaran 2026/2027 • Dokumen Resmi Sekolah</div>
+          </div>
+
+          <!-- Metadata -->
+          <div class="report-meta-grid">
+            <div><b>Filter Kelas:</b> ${this.currentFilterClass === 'all' ? 'Seluruh Kelas' : this.currentFilterClass}</div>
+            <div><b>Periode Tanggal:</b> ${this.currentFilterDate === 'today' ? 'Hari Ini' : this.currentFilterDate === 'this_month' ? 'Bulan Ini' : 'Semua Riwayat'}</div>
+            <div><b>Status Filter:</b> ${this.currentFilterStatus === 'all' ? 'Semua Status' : this.currentFilterStatus}</div>
+            <div><b>Tanggal Cetak:</b> ${today}</div>
+          </div>
+
+          <!-- Summary Stat Boxes -->
+          <div class="report-summary-boxes">
+            <div class="report-stat-box">
+              <div class="report-stat-num">${total}</div>
+              <div class="report-stat-label">Total Log</div>
+            </div>
+            <div class="report-stat-box">
+              <div class="report-stat-num" style="color: #059669;">${onTime + approved}</div>
+              <div class="report-stat-label">Hadir Sah</div>
+            </div>
+            <div class="report-stat-box">
+              <div class="report-stat-num" style="color: #D97706;">${late}</div>
+              <div class="report-stat-label">Terlambat</div>
+            </div>
+            <div class="report-stat-box">
+              <div class="report-stat-num" style="color: #2563EB;">${rate}%</div>
+              <div class="report-stat-label">Persentase Sah</div>
+            </div>
+          </div>
+
+          <!-- Data Table -->
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width: 40px; text-align: center;">No</th>
+                <th>NIS</th>
+                <th>Nama Lengkap</th>
+                <th>Kelas</th>
+                <th>Tipe</th>
+                <th>Jam Server</th>
+                <th>Jarak</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.length === 0 ? '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #94A3B8;">Tidak ada catatan absensi yang sesuai filter.</td></tr>' : ''}
+              ${list.map((a, idx) => {
+                const s = DB.getProfileById(a.user_id);
+                const statusLabel = {
+                  'on_time': 'Tepat Waktu',
+                  'late': 'Terlambat',
+                  'outside_area': 'Di Luar Area',
+                  'approved': 'Hadir Sah (Disetujui)',
+                  'rejected': 'Ditolak'
+                }[a.status] || a.status;
+
+                return `
+                  <tr>
+                    <td style="text-align: center;">${idx + 1}</td>
+                    <td style="font-family: monospace;">${s?.nis || '-'}</td>
+                    <td><b>${s?.full_name || 'Siswa'}</b></td>
+                    <td>${s?.class_name || '-'}</td>
+                    <td>${a.type === 'in' ? 'Masuk' : 'Pulang'}</td>
+                    <td>${new Date(a.server_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</td>
+                    <td>${GeoService.formatDistance(a.distance_m)}</td>
+                    <td><b>${statusLabel}</b></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+
+          <!-- Signature Block -->
+          <div class="report-signature-block">
+            <div class="report-sign-col">
+              <div>Mengetahui,</div>
+              <div><b>Wali Kelas / Pembina</b></div>
+              <div class="report-sign-space"></div>
+              <div><u>( .................................................. )</u></div>
+              <div style="font-size: 0.75rem; color: #64748B;">NIP. .........................................</div>
+            </div>
+            <div class="report-sign-col">
+              <div>Surabaya, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+              <div><b>Kepala Sekolah</b></div>
+              <div class="report-sign-space"></div>
+              <div><u>Dr. H. Bambang Sudarsono, M.Pd.</u></div>
+              <div style="font-size: 0.75rem; color: #64748B;">NIP. 19740512 199903 1 004</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
   }
 
   static showDetailModal(attId) {

@@ -10,7 +10,8 @@
 
 | Commit | Pesan Commit | Deskripsi |
 |---|---|---|
-| `pending` | `feat(telegram-consent): integrate live telegram bot simulation and UU PDP digital consent flow` | Simulator bot Telegram dengan histori tersimpan, pengiriman pesan presensi instan ke obrolan simulator, tombol uji 1-klik di modal penerbitan kode, formulir persetujuan digital UU PDP No. 27/2022 dengan fitur cabut izin, dan rekap status di profil siswa serta tabel admin. |
+| `pending` | `feat(admin): add official report sheet print/PDF modal, filtered CSV export, and interactive geofencing map calibration` | Lembar rekapitulasi cetak/PDF berstandar Kop Surat resmi SMAN 1 Teladan dengan blok tanda tangan, ekspor CSV UTF-8 BOM untuk Excel, filter multi-dimensi (kelas, tanggal, status), peta geofencing Leaflet interaktif dengan draggable pin, slider sinkron radius, dan kalibrasi GPS 1-klik. |
+| `f5ae447` | `feat(telegram-consent): integrate live telegram bot simulation and UU PDP digital consent flow` | Simulator bot Telegram dengan histori tersimpan, pengiriman pesan presensi instan ke obrolan simulator, tombol uji 1-klik di modal penerbitan kode, formulir persetujuan digital UU PDP No. 27/2022 dengan fitur cabut izin, dan rekap status di profil siswa serta tabel admin. |
 | `29a0056` | `feat(leave): polish student leave modal with instant file preview, 300KB validation, and lightbox` | Segmented control jenis izin/sakit, hitung durasi tanggal dinamis, dropzone berkas interaktif dengan validasi 300 KB seketika, preview card thumbnail/PDF, dan in-app lightbox modal untuk surat dokter. |
 | `6c1b6dd` | `feat(admin): polish review queue, detailed verification modal, and approval sync with student status` | Modal detail verifikasi selfie & GPS di menu Tinjauan Admin, form catatan verifikasi, tombol keputusan Sah/Tolak, dan sinkronisasi status ke siswa. |
 | `0e9a9c9` | `fix(ui): refactor status today boxes to stacked metric cards and prevent badge text wrapping` | Rombak kartu status presensi hari ini menjadi stacked metric card vertikal, tambah `white-space: nowrap` agar badge tidak terjepit atau peyang. |
@@ -56,13 +57,23 @@
 - **Eksekusi Keputusan Admin:** Admin dapat memilih *Setujui (Hadir Sah)* atau *Tolak Presensi* disertai catatan verifikasi (dengan prompt alasan penolakan jika ditolak).
 - **Sinkronisasi Otomatis:** Begitu disetujui admin, status di beranda dan riwayat siswa langsung berubah menjadi `Hadir Sah (Disetujui)` berwarna hijau beserta catatan resmi admin.
 
+### F. Laporan Rekapitulasi Presensi & Cetak PDF Resmi (PRD FR-13 & FR-14)
+- **Lembar Cetak Standar Instansi:** Dilengkapi Kop Surat resmi Pemerintah Daerah & Dinas Pendidikan, logo sekolah, nomor kontak, serta tabel absensi berformat formal.
+- **Filter Multi-Dimensi Dinamis:** Filter kelas otomatis dari database siswa aktif, filter tanggal (Hari Ini, Bulan Ini, Semua Riwayat), dan status kehadiran.
+- **Statistik & Persentase Sah Otomatis:** Ringkasan jumlah log, total hadir tepat waktu & disetujui, terlambat, serta persentase kehadiran sah.
+- **Blok Tanda Tangan Ganda:** Mengetahui Wali Kelas / Pembina dan Kepala Sekolah lengkap dengan tempat NIP.
+- **Ekspor CSV Kompatibel Excel:** Menyertakan UTF-8 BOM (`\uFEFF`) agar seluruh karakter dan teks bahasa Indonesia terbaca rapi tanpa karakter rusak di Microsoft Excel.
+
+### G. Kalibrasi Peta Geofencing & Lokasi Sekolah (PRD FR-15 & FR-16)
+- **Peta Interaktif Leaflet:** Marker pin gerbang sekolah yang dapat digeser (*draggable*) atau dipindahkan dengan klik langsung pada peta.
+- **Radius Slider Sinkron:** Slider jangkauan toleransi (20m - 500m) yang langsung memperbesar/memperkecil lingkaran radius biru secara real-time di atas peta tanpa reload.
+- **1-Klik Kalibrasi GPS:** Tombol *Gunakan GPS Saya* untuk mengambil koordinat riil perangkat admin saat berada di gerbang sekolah.
+- **Desain Formulir Sistem:** Form controls terpadu dengan focus rings, labels, help text, dan feedback pesan validasi.
+
 ---
 
 ## 3. Langkah Selanjutnya
 
-1. **Penyempurnaan Laporan & Rekap Ekspor CSV/PDF (PRD FR-18 s/d FR-24)**:
-   - Filter rekapitulasi kehadiran berdasarkan rentang tanggal, kelas, dan status kehadiran.
-   - Perhitungan persentase kehadiran siswa otomatis.
-   - Generator ekspor berkas CSV dan pratinjau cetak/PDF berstandar sekolah.
-2. **Pengujian Radius Dinamis & Peta Sekolah (PRD FR-15 & FR-16)**:
-   - Kalibrasi visual lingkaran radius Leaflet saat admin menggeser slider radius atau titik pin koordinat.
+1. **Uji Coba Penggunaan Lapangan (Field Test Simulation):**
+   - Validasi perilaku offline service worker saat jaringan terputus (PRD FR-46 s/d FR-50).
+   - Pengujian live di peramban seluler (smartphone Android / iOS) via URL Vercel.
