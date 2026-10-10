@@ -318,6 +318,37 @@ class DB {
     return null;
   }
 
+  static deleteAttendance(id) {
+    const db = this.get();
+    const idx = (db.attendance || []).findIndex(a => a.id === id);
+    if (idx !== -1) {
+      const removed = db.attendance.splice(idx, 1)[0];
+      if (db.notification_queue) {
+        db.notification_queue = db.notification_queue.filter(n => n.attendance_id !== id);
+      }
+      this.save(db);
+      return removed;
+    }
+    return null;
+  }
+
+  static resetTodayAttendance(userId = null) {
+    const db = this.get();
+    const todayStr = new Date().toISOString().split('T')[0];
+    const initialCount = (db.attendance || []).length;
+    
+    db.attendance = (db.attendance || []).filter(a => {
+      const isToday = a.server_time && a.server_time.startsWith(todayStr);
+      if (userId) {
+        return !(isToday && a.user_id === userId);
+      }
+      return !isToday;
+    });
+
+    this.save(db);
+    return initialCount - db.attendance.length;
+  }
+
   // --- Telegram & Guardians ---
   static getGuardians(studentId = null) {
     let list = this.get().guardians || [];

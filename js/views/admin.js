@@ -195,8 +195,9 @@ class AdminView {
                       <td class="tabular-nums">${new Date(att.server_time).toLocaleTimeString('id-ID')} WIB</td>
                       <td>${GeoService.formatDistance(att.distance_m)}</td>
                       <td><span class="badge badge-${att.status}">${att.status}</span></td>
-                      <td>
+                      <td style="display: flex; gap: 6px;">
                         <button class="btn btn-sm btn-outline" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
+                        <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)}</button>
                       </td>
                     </tr>
                   `;
@@ -239,9 +240,14 @@ class AdminView {
             <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Rekap & Log Absensi</h1>
             <p style="font-size: 0.88rem; color: var(--text-secondary);">Daftar seluruh kehadiran siswa (semua wali kelas dapat memantau seluruh kelas, PRD Bagian 3)</p>
           </div>
-          <button class="btn btn-success" onclick="AdminView.exportToCSV()">
-            ${Icons.download(16)} Ekspor CSV
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-danger" onclick="AdminView.promptResetTodayAttendance()">
+              ${Icons.trash(16)} Reset Absensi Hari Ini
+            </button>
+            <button class="btn btn-success" onclick="AdminView.exportToCSV()">
+              ${Icons.download(16)} Ekspor CSV
+            </button>
+          </div>
         </div>
 
         <!-- Filter Bar -->
@@ -299,7 +305,10 @@ class AdminView {
                     <td class="tabular-nums">${new Date(att.server_time).toLocaleDateString('id-ID')} ${new Date(att.server_time).toLocaleTimeString('id-ID')}</td>
                     <td>${GeoService.formatDistance(att.distance_m)}</td>
                     <td><span class="badge badge-${att.status}">${att.status}</span></td>
-                    <td><button class="btn btn-sm btn-outline" onclick="AdminView.showDetailModal('${att.id}')">Detail</button></td>
+                    <td style="display: flex; gap: 6px;">
+                      <button class="btn btn-sm btn-outline" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
+                      <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)} Hapus</button>
+                    </td>
                   </tr>
                 `;
               }).join('')}
@@ -726,6 +735,31 @@ class AdminView {
     App.renderCurrentView();
   }
 
+  static confirmDeleteAttendance(attId, closeDetail = false) {
+    const att = DB.getAttendance().find(a => a.id === attId);
+    if (!att) return;
+    const student = DB.getProfileById(att.user_id);
+    const typeLabel = att.type === 'in' ? 'Masuk' : 'Pulang';
+
+    if (confirm(`Hapus catatan absensi ${typeLabel} untuk siswa "${student?.full_name || 'Siswa'}" (${new Date(att.server_time).toLocaleTimeString('id-ID')})?\n\nSetelah dihapus, siswa dapat melakukan absensi ulang.`)) {
+      DB.deleteAttendance(attId);
+      if (closeDetail) {
+        document.querySelector('.modal-backdrop')?.remove();
+      }
+      App.showToast(`Catatan absensi ${typeLabel} berhasil dihapus. Siswa dapat absen kembali!`, 'success');
+      App.renderCurrentView();
+    }
+  }
+
+  static promptResetTodayAttendance() {
+    const todayStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    if (confirm(`Apakah Anda yakin ingin menghapus SEMUA catatan absensi untuk hari ini (${todayStr})?\n\nTindakan ini akan mengosongkan riwayat hari ini sehingga seluruh siswa dapat melakukan presensi ulang.`)) {
+      const deletedCount = DB.resetTodayAttendance();
+      App.showToast(`Berhasil menghapus ${deletedCount} riwayat absensi hari ini!`, 'success');
+      App.renderCurrentView();
+    }
+  }
+
   static reviewLeave(leaveId, newStatus) {
     DB.updateLeaveRequest(leaveId, newStatus, `Ditinjau oleh admin pada ${new Date().toLocaleTimeString('id-ID')}`);
     App.showToast(`Permohonan izin berhasil diubah: ${newStatus.toUpperCase()}`, 'success');
@@ -966,7 +1000,8 @@ class AdminView {
             ${att.outside_reason ? `<div style="color: var(--warning); margin-top: 4px;"><b>Alasan Di Luar Area:</b> "${att.outside_reason}"</div>` : ''}
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="display: flex; justify-content: space-between;">
+          <button class="btn btn-danger" onclick="AdminView.confirmDeleteAttendance('${att.id}', true)">${Icons.trash(16)} Hapus Catatan Ini</button>
           <button class="btn btn-secondary" onclick="this.closest('.modal-backdrop').remove()">Tutup</button>
         </div>
       </div>
