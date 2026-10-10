@@ -1184,16 +1184,51 @@
   transform: scale(1);
 }
 
-/* Horizontal Shake on Error */
-.shake-card {
-  animation: horizontalShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+/* Horizontal Shake on Form Error (Localized Physical Restraint) */
+.shake-form {
+  animation: horizontalFormShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-@keyframes horizontalShake {
+@keyframes horizontalFormShake {
   10%, 90% { transform: translate3d(-3px, 0, 0); }
-  20%, 80% { transform: translate3d(5px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
-  40%, 60% { transform: translate3d(7px, 0, 0); }
+  20%, 80% { transform: translate3d(4px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+  40%, 60% { transform: translate3d(5px, 0, 0); }
+}
+
+/* Fluid Error Banner Reveal (No Layout Pop) */
+.login-error-banner {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+  padding: 0 14px;
+  border-radius: var(--radius-input);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-4px);
+  max-height: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+  border-width: 0;
+  transition:
+    opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    max-height 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    padding 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    margin-bottom 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    border-width 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.login-error-banner.visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 100px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-width: 1px;
 }
 
 /* Page Exit Transition */

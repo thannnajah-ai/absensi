@@ -103,7 +103,7 @@ class LoginView {
             </div>
 
             <!-- Error Banner -->
-            <div id="loginErrorBanner" style="display: ${this.errorMessage ? 'flex' : 'none'}; background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 10px 14px; border-radius: var(--radius-input); margin-bottom: 16px; font-size: 0.82rem; align-items: flex-start; gap: 8px;">
+            <div id="loginErrorBanner" class="login-error-banner ${this.errorMessage ? 'visible' : ''}">
               <span style="flex-shrink: 0; margin-top: 1px;">${Icons.alertTriangle(16)}</span>
               <span id="loginErrorText">${this.errorMessage}</span>
             </div>
@@ -217,7 +217,7 @@ class LoginView {
     this.currentTab = tab;
     this.errorMessage = '';
     const errBanner = document.getElementById('loginErrorBanner');
-    if (errBanner) errBanner.style.display = 'none';
+    if (errBanner) errBanner.classList.remove('visible');
 
     const pill = document.getElementById('roleSlidingPill');
     const btnStudent = document.getElementById('btnRoleStudent');
@@ -281,7 +281,7 @@ class LoginView {
       this.triggerShake();
       if (errBanner && errText) {
         errText.textContent = 'Harap isi seluruh kolom identitas dan kata sandi.';
-        errBanner.style.display = 'flex';
+        errBanner.classList.add('visible');
       }
       return;
     }
@@ -291,7 +291,7 @@ class LoginView {
       btn.classList.add('state-loading');
       btn.disabled = true;
     }
-    if (errBanner) errBanner.style.display = 'none';
+    if (errBanner) errBanner.classList.remove('visible');
 
     // Jeda autentikasi yang mantap (850ms) agar putaran loading spinner terlihat berirama
     setTimeout(() => {
@@ -306,7 +306,7 @@ class LoginView {
         this.triggerShake();
         if (errBanner && errText) {
           errText.textContent = authResult.message;
-          errBanner.style.display = 'flex';
+          errBanner.classList.add('visible');
         }
         return;
       }
@@ -402,12 +402,12 @@ class LoginView {
   }
 
   static triggerShake() {
-    const card = document.getElementById('loginSplitCard');
-    if (card) {
-      card.classList.remove('shake-card');
-      void card.offsetWidth;
-      card.classList.add('shake-card');
-      setTimeout(() => card.classList.remove('shake-card'), 500);
+    const form = document.getElementById('loginForm');
+    if (form) {
+      form.classList.remove('shake-form');
+      void form.offsetWidth;
+      form.classList.add('shake-form');
+      setTimeout(() => form.classList.remove('shake-form'), 450);
     }
   }
 }
