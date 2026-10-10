@@ -350,15 +350,27 @@ class StudentView {
 
         <div class="modal-body">
           <!-- Stepper Guide (design(3).md Wireframe B) -->
-          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; color: var(--primary-700); border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-            <span id="stepLabel1">1. Foto Wajah</span>
-            <span id="stepLabel2">2. Verifikasi Lokasi</span>
-            <span id="stepLabel3">3. Konfirmasi Presensi</span>
+          <div class="checkin-stepper" aria-label="Alur langkah presensi">
+            <div class="checkin-step-pill active" id="stepPill1">
+              <span class="step-num" id="stepNum1">1</span>
+              <span class="step-text">Foto Wajah</span>
+            </div>
+            <div class="checkin-step-connector" id="stepConn1"></div>
+            <div class="checkin-step-pill" id="stepPill2">
+              <span class="step-num" id="stepNum2">2</span>
+              <span class="step-text">Lokasi GPS</span>
+            </div>
+            <div class="checkin-step-connector" id="stepConn2"></div>
+            <div class="checkin-step-pill" id="stepPill3">
+              <span class="step-num" id="stepNum3">3</span>
+              <span class="step-text">Konfirmasi</span>
+            </div>
           </div>
 
           <!-- Camera Container -->
           <div id="cameraViewArea">
             <div class="camera-container">
+              <div id="cameraShutterFlash" class="camera-shutter-flash"></div>
               <video id="selfieVideo" class="camera-video" autoplay playsinline muted></video>
               <canvas id="selfieCanvas" class="camera-canvas" style="display: none;"></canvas>
               
@@ -371,10 +383,10 @@ class StudentView {
 
             <!-- Camera Controls -->
             <div style="display: flex; gap: 10px; margin-top: 12px;">
-              <button id="btnCapturePhoto" class="btn btn-primary btn-block" onclick="StudentView.captureSelfie()">
+              <button id="btnCapturePhoto" class="btn btn-primary btn-block scale-press" onclick="StudentView.captureSelfie()">
                 ${Icons.camera(18)} Ambil Foto
               </button>
-              <button id="btnRetakePhoto" class="btn btn-secondary btn-block" style="display: none;" onclick="StudentView.retakeSelfie()">
+              <button id="btnRetakePhoto" class="btn btn-secondary btn-block scale-press" style="display: none;" onclick="StudentView.retakeSelfie()">
                 ${Icons.refresh(18)} Ulangi Foto
               </button>
             </div>
@@ -390,17 +402,19 @@ class StudentView {
                   <div id="locSub" style="font-size: 0.78rem; color: var(--text-secondary);">Memeriksa jarak ke titik sekolah</div>
                 </div>
               </div>
-              <button class="btn btn-sm btn-outline" onclick="StudentView.refreshLocation()">Coba Lagi</button>
+              <button class="btn btn-sm btn-outline scale-press" onclick="StudentView.refreshLocation()">Coba Lagi</button>
             </div>
 
             <!-- Outside Area Reason Input (Wajib jika di luar radius, PRD FR-8) -->
-            <div id="outsideAreaWarningBox" style="display: none; margin-top: 8px;">
-              <div style="background: var(--warning-bg); border: 1px solid var(--warning-border); padding: 10px 12px; border-radius: var(--radius-input); font-size: 0.82rem; color: var(--warning);">
-                <b>Perangkat di luar radius sekolah.</b> Absensi tetap dapat dikirim dengan menyertakan alasan yang sah untuk ditinjau oleh pihak sekolah.
-              </div>
-              <div class="form-group" style="margin-top: 8px;">
-                <label class="form-label form-label-required">Alasan Berada di Luar Radius</label>
-                <textarea id="outsideReasonInput" class="form-textarea" placeholder="Contoh: Mengikuti kegiatan sekolah di luar kampus / Kendala teknis di gerbang" rows="2"></textarea>
+            <div id="outsideAreaWarningBox" class="outside-area-warning-wrap">
+              <div class="outside-area-warning-inner">
+                <div style="background: var(--warning-bg); border: 1px solid var(--warning-border); padding: 10px 12px; border-radius: var(--radius-input); font-size: 0.82rem; color: var(--warning);">
+                  <b>Perangkat di luar radius sekolah.</b> Absensi tetap dapat dikirim dengan menyertakan alasan yang sah untuk ditinjau oleh pihak sekolah.
+                </div>
+                <div class="form-group" style="margin-top: 2px;">
+                  <label class="form-label form-label-required">Alasan Berada di Luar Radius</label>
+                  <textarea id="outsideReasonInput" class="form-textarea" placeholder="Contoh: Mengikuti kegiatan sekolah di luar kampus / Kendala teknis di gerbang" rows="2"></textarea>
+                </div>
               </div>
             </div>
           </div>
@@ -408,7 +422,7 @@ class StudentView {
 
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="StudentView.closeCheckinModal()">Batal</button>
-          <button id="btnSubmitCheckin" class="btn btn-primary" disabled onclick="StudentView.submitCheckin()">
+          <button id="btnSubmitCheckin" class="btn btn-primary scale-press" disabled onclick="StudentView.submitCheckin()">
             Kirim Absensi
           </button>
         </div>
@@ -423,11 +437,68 @@ class StudentView {
     await this.refreshLocation();
   }
 
+  static updateStepperState() {
+    const p1 = document.getElementById('stepPill1');
+    const p2 = document.getElementById('stepPill2');
+    const p3 = document.getElementById('stepPill3');
+    const c1 = document.getElementById('stepConn1');
+    const c2 = document.getElementById('stepConn2');
+    const n1 = document.getElementById('stepNum1');
+    const n2 = document.getElementById('stepNum2');
+    const n3 = document.getElementById('stepNum3');
+    if (!p1 || !p2 || !p3) return;
+
+    const hasPhoto = !!this.capturedPhoto;
+    const hasLoc = !!this.locationData;
+
+    // Reset classes
+    p1.className = 'checkin-step-pill';
+    p2.className = 'checkin-step-pill';
+    p3.className = 'checkin-step-pill';
+    c1?.classList.remove('completed');
+    c2?.classList.remove('completed');
+
+    // Step 1: Foto Wajah
+    if (hasPhoto) {
+      p1.classList.add('completed');
+      if (n1) n1.innerHTML = Icons.check ? Icons.check(12) : '✓';
+      c1?.classList.add('completed');
+    } else {
+      p1.classList.add('active');
+      if (n1) n1.textContent = '1';
+    }
+
+    // Step 2: Lokasi GPS
+    if (hasLoc) {
+      p2.classList.add('completed');
+      if (n2) n2.innerHTML = Icons.check ? Icons.check(12) : '✓';
+      c2?.classList.add('completed');
+    } else if (hasPhoto) {
+      p2.classList.add('active');
+      if (n2) n2.textContent = '2';
+    } else {
+      if (n2) n2.textContent = '2';
+    }
+
+    // Step 3: Konfirmasi Presensi
+    if (hasPhoto && hasLoc) {
+      p3.classList.add('active');
+    }
+  }
+
   static captureSelfie() {
     const student = DB.getProfileById(App.currentUserId);
     const canvasEl = document.getElementById('selfieCanvas');
     const videoEl = document.getElementById('selfieVideo');
     const guideOverlay = document.getElementById('cameraOverlayGuide');
+    const shutter = document.getElementById('cameraShutterFlash');
+
+    // Tactile camera shutter flash feedback
+    if (shutter) {
+      shutter.classList.remove('flash-active');
+      void shutter.offsetWidth; // Force reflow
+      shutter.classList.add('flash-active');
+    }
 
     this.capturedPhoto = this.cameraService.capturePhoto(canvasEl, student?.full_name);
 
@@ -438,6 +509,7 @@ class StudentView {
     document.getElementById('btnCapturePhoto').style.display = 'none';
     document.getElementById('btnRetakePhoto').style.display = 'inline-flex';
 
+    this.updateStepperState();
     this.validateFormReadiness();
   }
 
@@ -454,6 +526,7 @@ class StudentView {
     document.getElementById('btnCapturePhoto').style.display = 'inline-flex';
     document.getElementById('btnRetakePhoto').style.display = 'none';
 
+    this.updateStepperState();
     this.validateFormReadiness();
   }
 
@@ -475,19 +548,21 @@ class StudentView {
         locDot.className = 'location-dot active';
         locTitle.textContent = 'Lokasi Valid (Dalam Radius)';
         locSub.textContent = `Jarak: ${GeoService.formatDistance(this.locationData.distance_m)} dari ${site.name} (Akurasi: ±${this.locationData.accuracy_m}m)`;
-        outsideBox.style.display = 'none';
+        outsideBox?.classList.remove('visible');
       } else {
         locDot.className = 'location-dot warning';
         locTitle.textContent = 'Di Luar Radius Sekolah';
         locSub.textContent = `Jarak: ${GeoService.formatDistance(this.locationData.distance_m)} (Batas: ${site.radius_m}m)`;
-        outsideBox.style.display = 'block';
+        outsideBox?.classList.add('visible');
       }
     } catch (err) {
       locDot.className = 'location-dot warning';
       locTitle.textContent = 'Gagal Mengambil Lokasi';
       locSub.textContent = err.message;
+      outsideBox?.classList.remove('visible');
     }
 
+    this.updateStepperState();
     this.validateFormReadiness();
   }
 
@@ -603,11 +678,11 @@ class StudentView {
     modal.innerHTML = `
       <div class="modal-content" style="text-align: center; max-width: 440px;">
         <div class="modal-body" style="padding: 28px 24px;">
-          <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--success-bg); color: var(--success); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+          <div class="success-pop-icon">
             ${Icons.checkCircle(32)}
           </div>
           
-          <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary);">
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">
             Absensi Berhasil ${isOffline ? 'Disimpan Lokal' : 'Dicatat'}
           </div>
           
@@ -616,20 +691,36 @@ class StudentView {
           </div>
 
           <!-- Detail Card -->
-          <div style="background: var(--surface-alt); border-radius: var(--radius-card); padding: 14px; margin-top: 16px; text-align: left; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
-            <div><b>Status:</b> <span class="badge badge-${record.status}">${record.status === 'on_time' ? 'Tepat Waktu' : record.status === 'late' ? 'Terlambat' : 'Di Luar Area (Menunggu Tinjauan)'}</span></div>
-            <div><b>Jarak ke Titik Sekolah:</b> ${GeoService.formatDistance(record.distance_m)}</div>
-            ${isOffline ? `<div style="color: var(--info); font-weight: 600;">Status Pengiriman: Antrean Lokal (Offline)</div>` : ''}
+          <div class="success-detail-card">
+            <div class="success-detail-row">
+              <span class="detail-label">Status Presensi</span>
+              <span class="badge badge-${record.status}">${record.status === 'on_time' ? 'Tepat Waktu' : record.status === 'late' ? 'Terlambat' : 'Di Luar Area (Menunggu Tinjauan)'}</span>
+            </div>
+            <div class="success-detail-row">
+              <span class="detail-label">Jarak ke Sekolah</span>
+              <span class="detail-value">${GeoService.formatDistance(record.distance_m)}</span>
+            </div>
+            ${isOffline ? `
+            <div class="success-detail-row">
+              <span class="detail-label">Antrean Sinkronisasi</span>
+              <span class="badge badge-warning">Tersimpan di Perangkat (Offline)</span>
+            </div>
+            ` : ''}
             
-            <div style="border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 4px;">
-              <b>Notifikasi Telegram Wali:</b><br/>
-              ${hasLinkedGuardian 
-                ? '<span style="color: var(--success); font-weight: 600;">Otomatis dikirimkan ke Telegram orang tua / wali.</span>' 
-                : '<span style="color: var(--text-muted);">Akun Telegram belum ditautkan (Absensi tetap sah).</span>'}
+            <div class="success-telegram-badge ${hasLinkedGuardian ? 'linked' : 'unlinked'}">
+              <div class="telegram-badge-icon">${Icons.send(16)}</div>
+              <div>
+                <div class="telegram-badge-title">Notifikasi Telegram Wali</div>
+                <div class="telegram-badge-desc">
+                  ${hasLinkedGuardian 
+                    ? 'Otomatis terkirim ke Telegram orang tua / wali murid.' 
+                    : 'Akun Telegram wali belum ditautkan (Absensi tetap sah).'}
+                </div>
+              </div>
             </div>
           </div>
 
-          <button class="btn btn-primary btn-block" style="margin-top: 20px;" onclick="this.closest('.modal-backdrop').remove()">
+          <button class="btn btn-primary btn-block scale-press" style="margin-top: 20px;" onclick="this.closest('.modal-backdrop').remove()">
             Kembali ke Beranda
           </button>
         </div>

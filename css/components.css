@@ -341,6 +341,79 @@
   color: var(--text-primary);
 }
 
+/* Checkin Modal Stepper Pills (design(3).md Wireframe B) */
+.checkin-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.checkin-step-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-badge);
+  background: var(--surface-alt);
+  transition: all 0.2s var(--ease-out);
+  white-space: nowrap;
+}
+
+.checkin-step-pill .step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: all 0.2s var(--ease-out);
+}
+
+.checkin-step-pill.active {
+  color: var(--primary-900);
+  background: var(--primary-50);
+  font-weight: 700;
+}
+
+.checkin-step-pill.active .step-num {
+  background: var(--primary-700);
+  color: #FFFFFF;
+}
+
+.checkin-step-pill.completed {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.checkin-step-pill.completed .step-num {
+  background: var(--success);
+  color: #FFFFFF;
+}
+
+.checkin-step-connector {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  transition: background 0.2s var(--ease-out);
+  min-width: 12px;
+}
+
+.checkin-step-connector.completed {
+  background: var(--success);
+}
+
 /* Camera Viewfinder */
 .camera-container {
   position: relative;
@@ -352,6 +425,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Camera Shutter Flash Micro-interaction */
+.camera-shutter-flash {
+  position: absolute;
+  inset: 0;
+  background: #FFFFFF;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.camera-shutter-flash.flash-active {
+  animation: shutterFlashAnim 180ms cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes shutterFlashAnim {
+  0% { opacity: 0; }
+  25% { opacity: 0.85; }
+  100% { opacity: 0; }
 }
 
 .camera-video, .camera-canvas {
@@ -375,13 +468,26 @@
   padding: 16px;
 }
 
-/* Oval Face Guide from design(3).md wireframe B */
+/* Biometric Oval Face Guide from design(3).md wireframe B */
 .face-guide-oval {
   width: 60%;
   height: 75%;
-  border: 2px dashed rgba(255, 255, 255, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 50% / 50%;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.45), 0 0 12px rgba(255, 255, 255, 0.25);
+  animation: ovalPulse 3s ease-in-out infinite;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+@keyframes ovalPulse {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.45), 0 0 10px rgba(59, 130, 246, 0.25);
+  }
+  50% {
+    border-color: rgba(96, 165, 250, 0.95);
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.45), 0 0 20px rgba(59, 130, 246, 0.55);
+  }
 }
 
 .camera-guide-text {
@@ -440,6 +546,132 @@
   0% { transform: scale(0.95); opacity: 0.8; }
   50% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Smooth Expand/Collapse for Outside Area Warning Box (Zero Layout Pop) */
+.outside-area-warning-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 240ms var(--ease-out);
+  overflow: hidden;
+}
+
+.outside-area-warning-wrap.visible {
+  grid-template-rows: 1fr;
+  margin-top: 10px;
+}
+
+.outside-area-warning-inner {
+  min-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 200ms ease, transform 200ms var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.outside-area-warning-wrap.visible .outside-area-warning-inner {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Success Confirmation Dialog Polish */
+.success-pop-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--success-bg);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px auto;
+  box-shadow: 0 0 0 8px rgba(22, 163, 74, 0.1);
+  animation: successIconPop 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes successIconPop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-detail-card {
+  background: var(--surface-alt);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  margin-top: 16px;
+  text-align: left;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border);
+}
+
+.success-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.success-detail-row .detail-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.success-detail-row .detail-value {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.success-telegram-badge {
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+  margin-top: 2px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.success-telegram-badge .telegram-badge-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary-50);
+  color: var(--primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.success-telegram-badge.unlinked .telegram-badge-icon {
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.success-telegram-badge .telegram-badge-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.success-telegram-badge .telegram-badge-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
 }
 
 /* Form Controls */
@@ -1471,9 +1703,16 @@
   .aurora-orb,
   .login-hero-badge,
   .hero-clock-dot,
+  .face-guide-oval,
+  .camera-shutter-flash.flash-active,
+  .success-pop-icon,
   .shake-form {
     animation: none !important;
     transform: none !important;
+  }
+
+  .outside-area-warning-wrap {
+    transition: none !important;
   }
 
   .btn-login-submit,
