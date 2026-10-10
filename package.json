@@ -1,11 +1,10 @@
 {
   "name": "aplikasi-absensi-otomatis",
-  "version": "1.0.0",
-  "description": "Aplikasi Absensi Otomatis (Selfie + Jam Server + Lokasi + Telegram Bot Notifikasi) PWA & Admin Dashboard",
-  "main": "server.js",
+  "version": "1.1.0",
+  "description": "Aplikasi Absensi Otomatis PWA & Admin Dashboard",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node local-server.js",
+    "dev": "node local-server.js"
   },
   "keywords": [
     "absensi",
