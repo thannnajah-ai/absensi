@@ -10,6 +10,7 @@
 
 | Commit | Pesan Commit | Deskripsi |
 |---|---|---|
+| `e88d0b8` | `fix(pwa): complete service worker cache asset manifest and bump cache to v2` | Menambahkan aset berkas skrip `config.js`, `icons.js`, dan `views/login.js` ke dalam manifest pre-caching Service Worker offline PWA serta pembaruan versi cache ke `absensi-cache-v2`. |
 | `55e086b` | `feat(admin): add official report sheet print/PDF modal, filtered CSV export, and interactive geofencing map calibration` | Lembar rekapitulasi cetak/PDF berstandar Kop Surat resmi SMAN 1 Teladan dengan blok tanda tangan, ekspor CSV UTF-8 BOM untuk Excel, filter multi-dimensi (kelas, tanggal, status), peta geofencing Leaflet interaktif dengan draggable pin, slider sinkron radius, dan kalibrasi GPS 1-klik. |
 | `f5ae447` | `feat(telegram-consent): integrate live telegram bot simulation and UU PDP digital consent flow` | Simulator bot Telegram dengan histori tersimpan, pengiriman pesan presensi instan ke obrolan simulator, tombol uji 1-klik di modal penerbitan kode, formulir persetujuan digital UU PDP No. 27/2022 dengan fitur cabut izin, dan rekap status di profil siswa serta tabel admin. |
 | `29a0056` | `feat(leave): polish student leave modal with instant file preview, 300KB validation, and lightbox` | Segmented control jenis izin/sakit, hitung durasi tanggal dinamis, dropzone berkas interaktif dengan validasi 300 KB seketika, preview card thumbnail/PDF, dan in-app lightbox modal untuk surat dokter. |
