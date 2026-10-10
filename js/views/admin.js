@@ -188,12 +188,21 @@ class AdminView {
 
     return `
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
           <div>
             <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);">Dashboard Ringkasan Hari Ini</h1>
             <p style="font-size: 0.9rem; color: var(--text-secondary);">${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </div>
-          <button class="btn btn-primary" onclick="AdminView.setTab('rekap')">Lihat Rekap Lengkap</button>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-secondary scale-press" style="display: inline-flex; align-items: center; gap: 6px;" onclick="AdminView.syncCloud()">
+              <span>☁️</span>
+              <span>Sinkronkan Supabase</span>
+              <span class="badge ${typeof SupabaseService !== 'undefined' && SupabaseService.status === 'connected' ? 'badge-success' : 'badge-neutral'}" style="font-size: 0.7rem; padding: 2px 6px;">
+                ${typeof SupabaseService !== 'undefined' && SupabaseService.status === 'connected' ? 'Terhubung' : 'Siap Sync'}
+              </span>
+            </button>
+            <button class="btn btn-primary scale-press" onclick="AdminView.setTab('rekap')">Lihat Rekap Lengkap</button>
+          </div>
         </div>
 
         <!-- Metric Grid (design(3).md Section 5.5) -->
