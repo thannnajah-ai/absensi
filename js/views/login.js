@@ -71,7 +71,7 @@ class LoginView {
           </div>
 
           <!-- PANEL KANAN: Formulir Login Glassmorphism -->
-          <div class="login-form-panel">
+          <div class="login-form-panel login-form-stagger">
             <div style="margin-bottom: 22px;">
               <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.3px;">
                 Masuk ke Sistem
