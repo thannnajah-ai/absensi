@@ -10,7 +10,8 @@
 
 | Commit | Pesan Commit | Deskripsi |
 |---|---|---|
-| `pending` | `feat(leave): polish student leave modal with instant file preview, 300KB validation, and lightbox` | Segmented control jenis izin/sakit, hitung durasi tanggal dinamis, dropzone berkas interaktif dengan validasi 300 KB seketika, preview card thumbnail/PDF, dan in-app lightbox modal untuk surat dokter. |
+| `pending` | `feat(telegram-consent): integrate live telegram bot simulation and UU PDP digital consent flow` | Simulator bot Telegram dengan histori tersimpan, pengiriman pesan presensi instan ke obrolan simulator, tombol uji 1-klik di modal penerbitan kode, formulir persetujuan digital UU PDP No. 27/2022 dengan fitur cabut izin, dan rekap status di profil siswa serta tabel admin. |
+| `29a0056` | `feat(leave): polish student leave modal with instant file preview, 300KB validation, and lightbox` | Segmented control jenis izin/sakit, hitung durasi tanggal dinamis, dropzone berkas interaktif dengan validasi 300 KB seketika, preview card thumbnail/PDF, dan in-app lightbox modal untuk surat dokter. |
 | `6c1b6dd` | `feat(admin): polish review queue, detailed verification modal, and approval sync with student status` | Modal detail verifikasi selfie & GPS di menu Tinjauan Admin, form catatan verifikasi, tombol keputusan Sah/Tolak, dan sinkronisasi status ke siswa. |
 | `0e9a9c9` | `fix(ui): refactor status today boxes to stacked metric cards and prevent badge text wrapping` | Rombak kartu status presensi hari ini menjadi stacked metric card vertikal, tambah `white-space: nowrap` agar badge tidak terjepit atau peyang. |
 | `8942bb2` | `feat(ui): polish student checkin modal flow, camera shutter, and geofencing animations` | Stepper pills 3-langkah aktif/selesai, efek tactile camera shutter flash, oval guide biometrik berpendar, transisi mulus peringatan luar radius, dan pop-up sukses presensi. |
@@ -36,7 +37,20 @@
 - **File Preview Card:** Menampilkan thumbnail gambar / ikon PDF, ukuran file KB, status siap unggah, dan tombol hapus berkas.
 - **In-App Lightbox Modal:** Menggantikan `target="_blank"` eksternal dengan modal penampil berkas terintegrasi yang bersih untuk siswa dan admin, lengkap dengan tombol unduh berkas dan navigasi tombol Escape.
 
-### C. Alur Antrean Tinjauan Admin (*Review Queue*)
+### C. Alur Simulator Bot Telegram & Penautan Wali (PRD FR-37 s/d FR-45)
+- **Desain Otentik Chat Telegram:** Gelembung chat warna khas Telegram, stempel waktu, tanda centang ganda (`✓✓`), dan avatar bot.
+- **Persistensi Riwayat Pesan:** Seluruh interaksi chat simulator kini tersimpan permanen di basis data lokal sehingga tidak terhapus saat modal ditutup.
+- **Live Dispatch Notifikasi Presensi:** Ketika siswa melakukan absen Masuk/Pulang, notifikasi resmi otomatis dikirimkan dan langsung muncul di obrolan simulator bot orang tua/wali.
+- **Tombol Uji Cepat Admin:** Pada dialog penerbitan kode 6-karakter admin, tersedia tombol *Salin Kode* dan *Uji di Simulator* yang otomatis mengisi `/start <KODE>` di simulator.
+- **Chip Navigasi Cepat:** Tombol cepat `/start`, contoh kode, dan pembersih obrolan di bagian bawah chat.
+
+### D. Formulir Persetujuan Digital Kepatuhan UU PDP (PRD FR-25 s/d FR-30a)
+- **Checkbox Lingkup Terpisah (Granular Scope):** Izin kamera & geolokasi, izin notifikasi bot Telegram, dan izin vektor wajah biometrik (Rilis 2) dapat dipilih secara independen.
+- **Deteksi Riwayat Persetujuan:** Menampilkan banner status persetujuan yang telah ditandatangani sebelumnya oleh orang tua/wali beserta tanggal pencatatan.
+- **Hak Pencabutan Persetujuan (FR-30a):** Tombol *Cabut Izin* yang memungkinkan orang tua/wali membatalkan persetujuan pemrosesan data sewaktu-waktu.
+- **Visibilitas Profil & Admin:** Rincian izin aktif ditampilkan transparan di menu Profil Siswa dan kolom status khusus di tabel Admin Orang Tua/Wali.
+
+### E. Alur Antrean Tinjauan Admin (*Review Queue*)
 - **Menu Tinjauan:** Mengumpulkan seluruh absensi di luar radius sekolah dan permohonan izin/sakit.
 - **Modal Detail Verifikasi:** Menampilkan foto selfie resolusi penuh, identitas siswa, koordinat GPS, jarak meter, akurasi, dan alasan siswa.
 - **Eksekusi Keputusan Admin:** Admin dapat memilih *Setujui (Hadir Sah)* atau *Tolak Presensi* disertai catatan verifikasi (dengan prompt alasan penolakan jika ditolak).
@@ -46,9 +60,9 @@
 
 ## 3. Langkah Selanjutnya
 
-1. **Pengujian Simulator Bot Telegram & Penautan Wali (FR-37 s/d FR-45)**:
-   - Uji penautan akun Telegram wali murid via modal simulator bot dengan kode unik 6-karakter.
-   - Uji pengiriman notifikasi kehadiran siswa secara otomatis ke obrolan bot Telegram.
-2. **Formulir Persetujuan Digital UU PDP (FR-25 s/d FR-30a)**:
-   - Pengujian modal persetujuan digital orang tua dengan checkbox terpisah (kamera/lokasi, notifikasi Telegram, dan data wajah).
-3. **Penyempurnaan Laporan & Rekap Ekspor CSV/PDF (FR-18 s/d FR-24)**.
+1. **Penyempurnaan Laporan & Rekap Ekspor CSV/PDF (PRD FR-18 s/d FR-24)**:
+   - Filter rekapitulasi kehadiran berdasarkan rentang tanggal, kelas, dan status kehadiran.
+   - Perhitungan persentase kehadiran siswa otomatis.
+   - Generator ekspor berkas CSV dan pratinjau cetak/PDF berstandar sekolah.
+2. **Pengujian Radius Dinamis & Peta Sekolah (PRD FR-15 & FR-16)**:
+   - Kalibrasi visual lingkaran radius Leaflet saat admin menggeser slider radius atau titik pin koordinat.

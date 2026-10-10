@@ -526,6 +526,7 @@ class AdminView {
                 <th>Kontak</th>
                 <th>Status Telegram</th>
                 <th>Chat ID Telegram</th>
+                <th>Persetujuan UU PDP</th>
                 <th>Aksi Kode & Tautan</th>
               </tr>
             </thead>
@@ -533,6 +534,9 @@ class AdminView {
               ${guardians.map(g => {
                 const student = DB.getProfileById(g.student_id);
                 const isLinked = !!g.telegram_chat_id;
+                const consents = DB.getConsents(g.student_id);
+                const consentLabel = consents.length >= 2 ? `Lengkap (${consents.length}/3)` : consents.length > 0 ? `Sebagian (${consents.length}/3)` : 'Belum Ada';
+                const consentBadge = consents.length >= 2 ? 'badge-success' : consents.length > 0 ? 'badge-warning' : 'badge-neutral';
                 return `
                   <tr>
                     <td><b>${g.guardian_name}</b></td>
@@ -545,12 +549,17 @@ class AdminView {
                     </td>
                     <td class="tabular-nums">${g.telegram_chat_id || '-'}</td>
                     <td>
+                      <button type="button" class="badge ${consentBadge} scale-press" style="cursor: pointer; border: none;" onclick="ConsentView.openModal('${g.student_id}')" title="Klik untuk lihat / kelola persetujuan digital">
+                        ${consentLabel}
+                      </button>
+                    </td>
+                    <td>
                       <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-sm btn-primary" onclick="AdminView.issueTelegramCode('${g.id}')">
-                          Terbitkan Kode Baru
+                        <button class="btn btn-sm btn-primary scale-press" onclick="AdminView.issueTelegramCode('${g.id}')">
+                          Terbitkan Kode
                         </button>
                         ${isLinked ? `
-                          <button class="btn btn-sm btn-danger" onclick="AdminView.promptUnlinkTelegram('${g.id}')">
+                          <button class="btn btn-sm btn-danger scale-press" onclick="AdminView.promptUnlinkTelegram('${g.id}')">
                             Putus Tautan
                           </button>
                         ` : ''}
@@ -865,9 +874,18 @@ class AdminView {
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px; margin-top: 16px;">
-            <button class="btn btn-secondary btn-block" onclick="clearInterval(window._tgModalInterval); this.closest('.modal-backdrop').remove()">Tutup</button>
-            <button class="btn btn-primary btn-block" onclick="AdminView.checkModalLinking('${guardianId}')">Cek Status Penautan</button>
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button class="btn btn-outline scale-press" style="flex: 1; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="navigator.clipboard?.writeText('${codeObj.rawCode}'); App.showToast('Kode ${codeObj.rawCode} berhasil disalin!', 'success');">
+              ${Icons.fileText(14)} Salin Kode
+            </button>
+            <button class="btn btn-primary scale-press" style="flex: 1.3; font-size: 0.8rem; background: #24A1DE; border-color: #24A1DE; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="App.openTelegramSimulatorModal('/start ${codeObj.rawCode}')">
+              ${Icons.send(14)} Uji di Simulator
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 12px;">
+            <button class="btn btn-secondary btn-block scale-press" onclick="clearInterval(window._tgModalInterval); this.closest('.modal-backdrop').remove()">Tutup</button>
+            <button class="btn btn-primary btn-block scale-press" onclick="AdminView.checkModalLinking('${guardianId}')">Cek Status Penautan</button>
           </div>
         </div>
       </div>

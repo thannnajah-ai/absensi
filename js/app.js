@@ -240,51 +240,98 @@ class App {
   }
 
   // --- Interactive Telegram Bot Simulator Modal ---
-  static openTelegramSimulatorModal() {
+  static openTelegramSimulatorModal(prefillCode = '') {
+    const existing = document.getElementById('telegramSimulatorModal');
+    if (existing) existing.remove();
+
+    const botUser = window.AppConfig?.telegramBotUsername || 'AbsenM3INBot';
+    const messages = TelegramService.getSimulatedMessages();
+
     const modal = document.createElement('div');
     modal.id = 'telegramSimulatorModal';
     modal.className = 'modal-backdrop';
     modal.innerHTML = `
-      <div class="modal-content" style="max-width: 480px; height: 600px; display: flex; flex-direction: column;">
+      <div class="tg-modal-card">
         <!-- Bot Header -->
-        <div style="background: #2563EB; color: #FFF; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-radius: var(--radius-card) var(--radius-card) 0 0;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 36px; height: 36px; border-radius: 50%; background: #EFF6FF; color: #1D4ED8; display: flex; align-items: center; justify-content: center;">
+        <div class="tg-header">
+          <div class="tg-bot-info">
+            <div class="tg-avatar">
               ${Icons.send(18)}
             </div>
             <div>
-              <div style="font-weight: 700; font-size: 0.95rem;">Bot Kehadiran SMAN 1 Teladan</div>
-              <div style="font-size: 0.75rem; opacity: 0.9;">Layanan Resmi Notifikasi Kehadiran</div>
+              <div class="tg-name">@${botUser}</div>
+              <div class="tg-status">
+                <span class="tg-status-dot"></span>
+                <span>Bot Resmi Presensi SMAN 1 Teladan</span>
+              </div>
             </div>
           </div>
           <button class="modal-close-btn" style="color: #FFF;" onclick="document.getElementById('telegramSimulatorModal').remove()">&times;</button>
         </div>
 
         <!-- Chat History Area -->
-        <div id="tgChatMessages" style="flex: 1; padding: 16px; overflow-y: auto; background: #F8FAFC; display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem;">
-          <div style="align-self: center; background: #E2E8F0; color: #475569; font-size: 0.72rem; padding: 3px 12px; border-radius: 12px; font-weight: 500;">
-            Saluran Notifikasi Kehadiran Siswa
-          </div>
+        <div id="tgChatMessages" class="tg-messages-box">
+          <div class="tg-date-badge">Hari Ini</div>
+          ${messages.map(m => `
+            <div class="tg-msg-bubble ${m.sender === 'user' ? 'tg-msg-user' : 'tg-msg-bot'}">
+              <span>${m.text.replace(/\*(.*?)\*/g, '<b>$1</b>')}</span>
+              <span class="tg-msg-time">
+                ${m.time || ''}
+                ${m.sender === 'user' ? ' ✓✓' : ''}
+              </span>
+            </div>
+          `).join('')}
+        </div>
 
-          <div style="align-self: flex-start; background: #FFF; border: 1px solid #E2E8F0; padding: 12px 14px; border-radius: 12px; max-width: 85%; line-height: 1.45; color: #0F172A;">
-Selamat datang di Layanan Notifikasi Kehadiran SMAN 1 Teladan.
-
-Silakan masukkan <b>Kode Penautan 6-Karakter</b> (atau perintah <code>/start &lt;KODE&gt;</code>) yang diterbitkan pihak sekolah untuk menautkan akun ini ke data siswa.
-          </div>
+        <!-- Quick Action Chips -->
+        <div class="tg-quick-bar">
+          <button type="button" class="tg-chip" onclick="App.setTelegramInput('/start')">/start</button>
+          <button type="button" class="tg-chip" onclick="App.setTelegramInput('/start 6XY7AB')">Contoh Kode</button>
+          <button type="button" class="tg-chip" style="color: var(--danger); margin-left: auto;" onclick="App.clearTelegramChat()">Bersihkan Chat</button>
         </div>
 
         <!-- Chat Input Bar -->
-        <div style="padding: 10px 14px; background: #FFF; border-top: 1px solid var(--border); display: flex; gap: 8px;">
-          <input type="text" id="tgInputText" class="form-input" placeholder="Ketik kode (misal: 6XY7AB) atau /start..." onkeydown="if(event.key==='Enter') App.sendTelegramSimMessage()" />
-          <button class="btn btn-primary" style="background: #2AABEE; border-color: #2AABEE;" onclick="App.sendTelegramSimMessage()">
-            Kirim
+        <div class="tg-input-bar">
+          <input type="text" id="tgInputText" class="tg-input-field" placeholder="Ketik pesan atau /start <KODE>..." value="${prefillCode}" onkeydown="if(event.key==='Enter') App.sendTelegramSimMessage()" />
+          <button class="tg-send-btn scale-press" onclick="App.sendTelegramSimMessage()" title="Kirim">
+            ${Icons.send(16)}
           </button>
         </div>
       </div>
     `;
 
     document.body.appendChild(modal);
-    setTimeout(() => document.getElementById('tgInputText')?.focus(), 100);
+    setTimeout(() => {
+      const input = document.getElementById('tgInputText');
+      if (input) {
+        input.focus();
+        if (prefillCode) input.select();
+      }
+      const chatBox = document.getElementById('tgChatMessages');
+      if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+    }, 80);
+  }
+
+  static setTelegramInput(val) {
+    const input = document.getElementById('tgInputText');
+    if (input) {
+      input.value = val;
+      input.focus();
+    }
+  }
+
+  static clearTelegramChat() {
+    TelegramService.clearSimulatedMessages();
+    const chatBox = document.getElementById('tgChatMessages');
+    if (chatBox) {
+      chatBox.innerHTML = `
+        <div class="tg-date-badge">Hari Ini</div>
+        <div class="tg-msg-bubble tg-msg-bot">
+          <span>Riwayat obrolan telah dibersihkan. Silakan masukkan <b>Kode Penautan 6-Karakter</b> untuk menautkan akun wali murid.</span>
+          <span class="tg-msg-time">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      `;
+    }
   }
 
   static sendTelegramSimMessage() {
@@ -295,10 +342,12 @@ Silakan masukkan <b>Kode Penautan 6-Karakter</b> (atau perintah <code>/start &lt
     const text = input.value.trim();
     if (!text) return;
 
-    // Append User Message
+    const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+    // Append User Message immediately
     const userMsg = document.createElement('div');
-    userMsg.style.cssText = 'align-self: flex-end; background: #EEFFDE; padding: 8px 14px; border-radius: 14px 14px 4px 14px; max-width: 80%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);';
-    userMsg.textContent = text;
+    userMsg.className = 'tg-msg-bubble tg-msg-user';
+    userMsg.innerHTML = `<span>${text}</span><span class="tg-msg-time">${nowTime} ✓✓</span>`;
     chatBox.appendChild(userMsg);
 
     input.value = '';
@@ -307,14 +356,27 @@ Silakan masukkan <b>Kode Penautan 6-Karakter</b> (atau perintah <code>/start &lt
     // Simulate Bot Response
     setTimeout(() => {
       const result = TelegramService.simulateBotInteraction(text, '987654321');
+      const botTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
       const botMsg = document.createElement('div');
-      botMsg.style.cssText = 'align-self: flex-start; background: #FFF; padding: 10px 14px; border-radius: 14px 14px 14px 4px; max-width: 85%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); white-space: pre-wrap; line-height: 1.4;';
-      botMsg.innerHTML = result.reply.replace(/\*(.*?)\*/g, '<b>$1</b>');
+      botMsg.className = 'tg-msg-bubble tg-msg-bot';
+      botMsg.innerHTML = `<span>${result.reply.replace(/\*(.*?)\*/g, '<b>$1</b>')}</span><span class="tg-msg-time">${botTime}</span>`;
       chatBox.appendChild(botMsg);
       chatBox.scrollTop = chatBox.scrollHeight;
 
       App.renderCurrentView();
-    }, 400);
+    }, 350);
+  }
+
+  static appendLiveTelegramMessage(rawText) {
+    const chatBox = document.getElementById('tgChatMessages');
+    if (!chatBox) return;
+
+    const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    const botMsg = document.createElement('div');
+    botMsg.className = 'tg-msg-bubble tg-msg-bot';
+    botMsg.innerHTML = `<span>${rawText.replace(/\*(.*?)\*/g, '<b>$1</b>')}</span><span class="tg-msg-time">${nowTime}</span>`;
+    chatBox.appendChild(botMsg);
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
 }
 

@@ -136,24 +136,73 @@ class TelegramService {
   }
 
   /**
+  /**
+   * Penyimpanan pesan simulasi Telegram (agar obrolan tersimpan konsisten)
+   */
+  static getSimulatedMessages() {
+    const db = DB.get();
+    if (!db.simulated_telegram_messages || db.simulated_telegram_messages.length === 0) {
+      db.simulated_telegram_messages = [
+        {
+          id: 'msg-init-1',
+          sender: 'bot',
+          text: 'Selamat datang di Layanan Notifikasi Kehadiran SMAN 1 Teladan.\n\nSilakan masukkan *Kode Penautan 6-Karakter* (atau perintah `/start <KODE>`) yang diterbitkan pihak sekolah untuk menautkan akun ini ke data siswa.',
+          time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        }
+      ];
+      DB.save(db);
+    }
+    return db.simulated_telegram_messages;
+  }
+
+  static addSimulatedMessage(text, sender = 'user') {
+    const db = DB.get();
+    if (!db.simulated_telegram_messages) db.simulated_telegram_messages = [];
+    const msg = {
+      id: 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      sender: sender,
+      text: text,
+      time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    };
+    db.simulated_telegram_messages.push(msg);
+    DB.save(db);
+    return msg;
+  }
+
+  static clearSimulatedMessages() {
+    const db = DB.get();
+    db.simulated_telegram_messages = [];
+    DB.save(db);
+  }
+
+  /**
    * Simulasi interaksi Bot Telegram (untuk pengujian langsung di dialog simulator)
    */
-  static simulateBotInteraction(userInput, currentChatId = '123456789') {
+  static simulateBotInteraction(userInput, currentChatId = '987654321') {
     const input = userInput.trim();
 
+    // Rekam pesan pengirim ke histori simulasi
+    this.addSimulatedMessage(input, 'user');
+
+    let result;
     if (input.startsWith('/start')) {
       const parts = input.split(' ');
       if (parts.length > 1) {
         const code = parts[1].trim();
-        return this.processCodeInput(code, currentChatId);
+        result = this.processCodeInput(code, currentChatId);
+      } else {
+        result = {
+          reply: `Layanan Notifikasi Kehadiran Siswa.\n\nSilakan kirimkan Kode Penautan 6 Karakter yang Anda peroleh dari sekolah untuk menautkan akun ini ke data siswa.`,
+          success: true
+        };
       }
-      return {
-        reply: `Layanan Notifikasi Kehadiran Siswa.\n\nSilakan kirimkan Kode Penautan 6 Karakter yang Anda peroleh dari sekolah untuk menautkan akun ini.`,
-        success: true
-      };
+    } else {
+      result = this.processCodeInput(input, currentChatId);
     }
 
-    return this.processCodeInput(input, currentChatId);
+    // Rekam balasan bot ke histori simulasi
+    this.addSimulatedMessage(result.reply, 'bot');
+    return result;
   }
 
   static processCodeInput(code, chatId) {
@@ -161,13 +210,13 @@ class TelegramService {
     if (res.success) {
       const student = DB.getProfileById(res.guardian.student_id);
       return {
-        reply: `[BERHASIL DITAUTKAN]\n\nAkun Telegram Anda kini resmi ditautkan ke data siswa: *${student?.full_name} (${student?.class_name})*.\n\nNotifikasi kehadiran akan dikirimkan otomatis saat absensi tercatat.`,
+        reply: `*NOTIFIKASI RESMI SMAN 1 TELADAN*\n\nAkun Telegram Anda kini resmi ditautkan ke data siswa:\n*Nama:* ${student?.full_name}\n*Kelas:* ${student?.class_name}\n*NIS:* ${student?.nis}\n\nMulai saat ini, notifikasi presensi masuk & pulang ananda akan otomatis dikirimkan ke ruang obrolan ini.`,
         success: true,
         guardian: res.guardian
       };
     } else {
       return {
-        reply: `[PENAUTAN GAGAL]\n\n${res.message}\nSilakan periksa kembali kode atau hubungi admin sekolah.`,
+        reply: `*PENAUTAN GAGAL*\n\n${res.message}\n\nSilakan periksa kembali kode atau hubungi admin sekolah untuk menerbitkan kode baru.`,
         success: false
       };
     }
@@ -202,10 +251,10 @@ class TelegramService {
 
       if (item.status === 'queued') {
         item.attempts = (item.attempts || 0) + 1;
+        const messageText = this.formatMessage(item.payload);
 
         if (token && item.to_chat_id && item.to_chat_id !== 'UNLINKED') {
           // Kirim ke API Telegram Resmi
-          const messageText = this.formatMessage(item.payload);
           const sendRes = await this.sendRealMessage(item.to_chat_id, messageText);
 
           if (sendRes.success) {
@@ -214,6 +263,10 @@ class TelegramService {
             item.sent_at = new Date().toISOString();
             item.error = null;
             sentCount++;
+            this.addSimulatedMessage(messageText, 'bot');
+            if (typeof App !== 'undefined' && App.appendLiveTelegramMessage) {
+              App.appendLiveTelegramMessage(messageText);
+            }
           } else {
             item.error = sendRes.error;
             if (item.attempts >= 3) {
@@ -226,6 +279,12 @@ class TelegramService {
           item.provider_message_id = 'tg-mock-' + Math.floor(Math.random() * 900000 + 100000);
           item.sent_at = new Date().toISOString();
           sentCount++;
+
+          // Simpan notifikasi ke histori obrolan simulator bot
+          this.addSimulatedMessage(messageText, 'bot');
+          if (typeof App !== 'undefined' && App.appendLiveTelegramMessage) {
+            App.appendLiveTelegramMessage(messageText);
+          }
         }
       }
     }

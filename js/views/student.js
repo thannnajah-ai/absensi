@@ -308,11 +308,30 @@ class StudentView {
       <div class="card">
         <div class="card-header">
           <span class="card-title">Persetujuan Digital (UU PDP)</span>
-          <button class="btn btn-sm btn-outline" onclick="ConsentView.openModal('${student.id}')">Buka Formulir</button>
+          <button class="btn btn-sm btn-outline scale-press" onclick="ConsentView.openModal('${student.id}')">
+            ${consents.length > 0 ? 'Kelola Izin' : 'Buka Formulir'}
+          </button>
         </div>
-        <p class="card-desc">Sesuai UU Perlindungan Data Pribadi, pemrosesan data kamera, lokasi, dan notifikasi wajib mengantongi persetujuan orang tua/wali.</p>
-        <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px;">
-          Tercatat: <b>${consents.length} persetujuan aktif</b>.
+        <p class="card-desc">Sesuai UU Perlindungan Data Pribadi No. 27/2022, pemrosesan data kamera, lokasi, dan notifikasi wajib mengantongi persetujuan orang tua/wali.</p>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
+          <div class="consent-summary-row">
+            <span>Kamera & Geolokasi</span>
+            <span class="badge ${consents.some(c => c.scope === 'camera_location') ? 'badge-success' : 'badge-neutral'}">
+              ${consents.some(c => c.scope === 'camera_location') ? 'Disetujui' : 'Belum Ada'}
+            </span>
+          </div>
+          <div class="consent-summary-row">
+            <span>Notifikasi Bot Telegram</span>
+            <span class="badge ${consents.some(c => c.scope === 'telegram_notification') ? 'badge-success' : 'badge-neutral'}">
+              ${consents.some(c => c.scope === 'telegram_notification') ? 'Disetujui' : 'Belum Ada'}
+            </span>
+          </div>
+          <div class="consent-summary-row">
+            <span>Vektor Wajah Biometrik</span>
+            <span class="badge ${consents.some(c => c.scope === 'face') ? 'badge-success' : 'badge-neutral'}">
+              ${consents.some(c => c.scope === 'face') ? 'Disetujui' : 'Belum (Rilis 2)'}
+            </span>
+          </div>
         </div>
       </div>
 

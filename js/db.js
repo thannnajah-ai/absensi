@@ -565,6 +565,14 @@ class DB {
     this.save(db);
     return consent;
   }
+
+  static clearConsents(userId) {
+    const db = this.get();
+    if (db.consents) {
+      db.consents = db.consents.filter(c => c.user_id !== userId);
+      this.save(db);
+    }
+  }
 }
 
 window.DB = DB;
