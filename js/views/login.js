@@ -358,13 +358,20 @@ class LoginView {
 
     document.body.appendChild(overlay);
 
-    // Mulai animasi bilah progres setelah kartu mendarat secara anggun (200ms)
+    // 1. Munculkan overlay dan kartu secara bersamaan dengan kurva pegas halus
+    requestAnimationFrame(() => {
+      overlay.classList.add('overlay-visible');
+      const card = document.getElementById('welcomeTransitionCard');
+      card?.classList.add('card-visible');
+    });
+
+    // 2. Mulai animasi bilah progres setelah kartu mendarat secara anggun (250ms)
     setTimeout(() => {
       const bar = document.getElementById('welcomeProgressBar');
       if (bar) bar.style.width = '100%';
-    }, 200);
+    }, 250);
 
-    // Saat progres mendekati penuh (1400ms), ubah teks status menjadi siap
+    // 3. Saat progres mendekati penuh (1400ms), ubah teks status menjadi siap
     setTimeout(() => {
       const hint = document.getElementById('welcomeStatusHint');
       if (hint) {
@@ -373,17 +380,24 @@ class LoginView {
       }
     }, 1400);
 
-    // Setelah kartu terbaca nyaman dan progres penuh (1750ms), jalankan transisi halus keluar
+    // 4. KUNCI KEHALUSAN (Crossfade Handover): Render dashboard di latar belakang terlebih dahulu
     setTimeout(() => {
-      const card = document.getElementById('welcomeTransitionCard');
-      if (card) card.classList.add('welcome-card-exit');
+      if (this.clockTimer) clearInterval(this.clockTimer);
+      
+      // Render dashboard sekarang di DOM (masih tertutup lapisan overlay, sehingga bebas kedipan/flash)
+      App.login(user, true);
 
-      // Saat kartu meluncur keluar (460ms kemudian), render beranda presensi
+      // 5. Beri jeda 60ms agar browser selesai menata tata letak (layout layouting)
       setTimeout(() => {
-        overlay.remove();
-        if (this.clockTimer) clearInterval(this.clockTimer);
-        App.login(user);
-      }, 460);
+        const card = document.getElementById('welcomeTransitionCard');
+        card?.classList.add('card-exit');
+        overlay.classList.add('overlay-fade-out');
+
+        // 6. Hapus overlay dari DOM HANYA setelah animasi memudar selesai 100% (550ms)
+        setTimeout(() => {
+          overlay.remove();
+        }, 550);
+      }, 60);
     }, 1750);
   }
 

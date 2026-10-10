@@ -59,7 +59,7 @@ class App {
     }
   }
 
-  static login(user) {
+  static login(user, silentToast = false) {
     this.currentUser = user;
     this.currentUserId = user.id;
     this.currentRole = user.role;
@@ -67,7 +67,9 @@ class App {
 
     this.renderHeaderControls();
     this.renderCurrentView();
-    this.showToast('Selamat datang, ' + user.full_name, 'success');
+    if (!silentToast) {
+      this.showToast('Selamat datang, ' + user.full_name, 'success');
+    }
   }
 
   static logout() {

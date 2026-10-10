@@ -1052,7 +1052,7 @@
   font-size: 0.95rem;
   border: none;
   cursor: pointer;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-radius 0.35s ease, transform 0.2s ease, box-shadow 0.25s ease;
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.4s ease, border-radius 0.45s ease, transform 0.25s ease, box-shadow 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1061,6 +1061,20 @@
   position: relative;
   overflow: hidden;
   margin: 10px auto 0 auto;
+}
+
+.btn-login-submit .btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.btn-login-submit.state-loading .btn-label,
+.btn-login-submit.state-success .btn-label {
+  opacity: 0;
+  transform: scale(0.85);
+  pointer-events: none;
 }
 
 .btn-login-submit:hover:not(:disabled) {
@@ -1078,7 +1092,6 @@
   width: 50px;
   border-radius: 50%;
   pointer-events: none;
-  color: transparent;
   box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
 }
 
@@ -1086,15 +1099,17 @@
   position: absolute;
   width: 22px;
   height: 22px;
-  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
   border-top-color: #FFFFFF;
   border-radius: 50%;
-  animation: btnSpin 0.7s linear infinite;
-  display: none;
+  animation: btnSpin 0.75s linear infinite;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
 }
 
 .btn-login-submit.state-loading .btn-login-spinner {
-  display: block;
+  opacity: 1;
 }
 
 @keyframes btnSpin {
@@ -1108,24 +1123,20 @@
   background: #10B981;
   box-shadow: 0 0 24px rgba(16, 185, 129, 0.6);
   pointer-events: none;
-  color: transparent;
-  animation: popSuccess 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .btn-login-checkmark {
   position: absolute;
   color: #FFFFFF;
-  display: none;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
 }
 
 .btn-login-submit.state-success .btn-login-checkmark {
-  display: flex;
-}
-
-@keyframes popSuccess {
-  0% { transform: scale(0.8); }
-  60% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Horizontal Shake on Error */
@@ -1185,71 +1196,61 @@
 
 /* ==========================================================================
    KONSEP B: WELCOME CARD & SLIDE-WIPE DASHBOARD TRANSITION
-   EduTech Official Greeting Card with Progress Loader & Smooth Unfold
+   EduTech Official Greeting Card with Progress Loader & Smooth Crossfade Unfold
    ========================================================================== */
 
 .welcome-transition-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  animation: welcomeOverlayFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: opacity;
 }
 
-@keyframes welcomeOverlayFadeIn {
-  from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
-  to { opacity: 1; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.welcome-transition-overlay.overlay-visible {
+  opacity: 1;
+}
+
+.welcome-transition-overlay.overlay-fade-out {
+  opacity: 0;
+  transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 .welcome-transition-card {
   width: 100%;
   max-width: 440px;
-  background: rgba(255, 255, 255, 0.96);
+  background: #FFFFFF;
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(226, 232, 240, 0.9);
-  padding: 34px 28px;
+  padding: 36px 30px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  animation: welcomeCardPopIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translate3d(0, 24px, 0) scale(0.95);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 }
 
-@keyframes welcomeCardPopIn {
-  from {
-    opacity: 0;
-    transform: scale(0.92) translateY(24px);
-    filter: blur(4px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    filter: blur(0px);
-  }
+.welcome-transition-card.card-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
 }
 
-.welcome-card-exit {
-  animation: welcomeCardSmoothExit 0.52s cubic-bezier(0.4, 0, 0.15, 1) forwards;
-}
-
-@keyframes welcomeCardSmoothExit {
-  0% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    filter: blur(0px);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.96) translateY(-24px);
-    filter: blur(6px);
-  }
+.welcome-transition-card.card-exit {
+  opacity: 0;
+  transform: translate3d(0, -22px, 0) scale(0.97);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .welcome-badge-icon {
@@ -1324,7 +1325,7 @@
 
 /* Smooth Staggered Dashboard Cascade Entrance */
 .dashboard-cascade-enter {
-  animation: dashboardFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: dashboardFade 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes dashboardFade {
@@ -1333,62 +1334,62 @@
 }
 
 .cascade-item-1 {
-  animation: cascadeDown 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+  animation: cascadeDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
 }
 
 .cascade-item-2 {
-  animation: cascadeScale 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+  animation: cascadeScale 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
 }
 
 .cascade-item-3 {
-  animation: cascadePop 0.75s cubic-bezier(0.34, 1.25, 0.64, 1) 0.28s both;
+  animation: cascadePop 0.8s cubic-bezier(0.34, 1.25, 0.64, 1) 0.28s both;
 }
 
 .cascade-item-4 {
-  animation: cascadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.38s both;
+  animation: cascadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.38s both;
 }
 
 @keyframes cascadeDown {
   from {
     opacity: 0;
-    transform: translateY(-16px);
+    transform: translate3d(0, -18px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes cascadeScale {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(14px);
+    transform: scale(0.96) translate3d(0, 14px, 0);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: scale(1) translate3d(0, 0, 0);
   }
 }
 
 @keyframes cascadePop {
   from {
     opacity: 0;
-    transform: scale(0.93) translateY(18px);
+    transform: scale(0.93) translate3d(0, 20px, 0);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: scale(1) translate3d(0, 0, 0);
   }
 }
 
 @keyframes cascadeUp {
   from {
     opacity: 0;
-    transform: translateY(22px);
+    transform: translate3d(0, 24px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
