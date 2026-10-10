@@ -10,6 +10,7 @@
 
 | Commit | Pesan Commit | Deskripsi |
 |---|---|---|
+| `51ea17d` | `feat(ui): add prominent Sinkronkan Supabase button in dashboard header and cache-busting params` | Menambahkan tombol interaktif Sinkronkan Supabase beserta pill status langsung di header Dashboard Ringkasan admin, dan parameter cache-busting `?v=1.2.0` pada skrip HTML. |
 | `05cb6f3` | `feat(supabase): integrate Supabase Cloud REST API sync adapter, fix RLS recursion, and add admin cloud widget` | Adapter REST Supabase Service (`js/supabase.js`), sinkronisasi dua arah (pull/push cloud), penanganan mutasi offline-first di `DB`, widget status Supabase dan tombol Sinkronkan Cloud di sidebar admin, serta skrip SQL perbaikan rekursi RLS (`supabase_fix_rls.sql`). |
 | `e88d0b8` | `fix(pwa): complete service worker cache asset manifest and bump cache to v2` | Menambahkan aset berkas skrip `config.js`, `icons.js`, dan `views/login.js` ke dalam manifest pre-caching Service Worker offline PWA serta pembaruan versi cache ke `absensi-cache-v2`. |
 | `55e086b` | `feat(admin): add official report sheet print/PDF modal, filtered CSV export, and interactive geofencing map calibration` | Lembar rekapitulasi cetak/PDF berstandar Kop Surat resmi SMAN 1 Teladan dengan blok tanda tangan, ekspor CSV UTF-8 BOM untuk Excel, filter multi-dimensi (kelas, tanggal, status), peta geofencing Leaflet interaktif dengan draggable pin, slider sinkron radius, dan kalibrasi GPS 1-klik. |
