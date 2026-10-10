@@ -116,12 +116,16 @@ class LoginView {
                 </label>
                 <div class="login-input-wrapper">
                   <input 
-                    type="text" 
+                    type="${this.currentTab === 'student' ? 'text' : 'email'}" 
                     id="loginIdentifier" 
                     class="login-input-field" 
                     placeholder="${this.currentTab === 'student' ? 'Contoh: 1024' : 'Contoh: admin@sekolah.id'}" 
                     required 
                     autocomplete="username"
+                    inputmode="${this.currentTab === 'student' ? 'numeric' : 'email'}"
+                    autocapitalize="none"
+                    autocorrect="off"
+                    enterkeyhint="next"
                     value="${isProd ? '' : (this.currentTab === 'student' ? '1024' : 'admin@sekolah.id')}"
                   />
                   <div class="login-input-icon-static" style="pointer-events: none;" id="identifierIcon">
@@ -145,6 +149,9 @@ class LoginView {
                     placeholder="Masukkan kata sandi" 
                     required 
                     autocomplete="current-password"
+                    autocapitalize="none"
+                    autocorrect="off"
+                    enterkeyhint="done"
                     value="${isProd ? '' : (this.currentTab === 'student' ? '123' : 'admin')}"
                   />
                   <button 
@@ -235,6 +242,8 @@ class LoginView {
       btnAdmin?.classList.add('active');
       if (labelId) labelId.textContent = 'Email atau NIP Pengajar';
       if (inputId) {
+        inputId.type = 'email';
+        inputId.setAttribute('inputmode', 'email');
         inputId.placeholder = 'Contoh: admin@sekolah.id';
         if (!isProd && (!inputId.value || inputId.value === '1024')) inputId.value = 'admin@sekolah.id';
       }
@@ -247,6 +256,8 @@ class LoginView {
       btnStudent?.classList.add('active');
       if (labelId) labelId.textContent = 'Nomor Induk Siswa (NIS)';
       if (inputId) {
+        inputId.type = 'text';
+        inputId.setAttribute('inputmode', 'numeric');
         inputId.placeholder = 'Contoh: 1024';
         if (!isProd && (!inputId.value || inputId.value === 'admin@sekolah.id')) inputId.value = '1024';
       }

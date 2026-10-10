@@ -319,7 +319,7 @@ class AdminView {
         <!-- Filter Bar -->
         <div class="card" style="padding: 14px 18px;">
           <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-            <input type="text" class="form-input" style="max-width: 240px;" placeholder="Cari nama atau NIS..." value="${this.searchQuery}" oninput="AdminView.searchQuery = this.value; AdminView.setTab('rekap');" />
+            <input type="search" class="form-input" style="max-width: 240px;" placeholder="Cari nama atau NIS..." value="${this.searchQuery}" enterkeyhint="search" autocapitalize="none" autocorrect="off" oninput="AdminView.searchQuery = this.value; AdminView.setTab('rekap');" />
             
             <select class="form-select" style="max-width: 170px;" onchange="AdminView.currentFilterClass = this.value; AdminView.setTab('rekap');">
               <option value="all" ${this.currentFilterClass === 'all' ? 'selected' : ''}>Semua Kelas</option>
@@ -1478,7 +1478,7 @@ class AdminView {
         <div class="modal-body">
           <div class="form-group">
             <label class="form-label form-label-required">Nomor Induk Siswa (NIS)</label>
-            <input type="text" id="newNis" class="form-input" placeholder="Contoh: 1027" />
+            <input type="text" id="newNis" class="form-input" placeholder="Contoh: 1027" inputmode="numeric" pattern="[0-9]*" autocapitalize="none" enterkeyhint="next" />
           </div>
           <div class="form-group">
             <label class="form-label form-label-required">Nama Lengkap Siswa</label>
