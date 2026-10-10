@@ -1063,7 +1063,8 @@
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
-.login-input-icon-btn {
+.login-input-icon-btn,
+.login-input-icon-static {
   position: absolute;
   right: 12px;
   background: transparent;
@@ -1073,9 +1074,15 @@
   align-items: center;
   justify-content: center;
   padding: 6px;
-  cursor: pointer;
   border-radius: 6px;
-  transition: color 160ms var(--ease-out), transform 160ms var(--ease-out);
+  transition:
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out),
+    opacity 160ms var(--ease-out);
+}
+
+.login-input-icon-btn {
+  cursor: pointer;
 }
 
 .login-input-icon-btn:hover {
@@ -1084,6 +1091,12 @@
 
 .login-input-icon-btn:active {
   transform: scale(0.92);
+}
+
+.login-input-icon-btn.icon-morphing,
+.login-input-icon-static.icon-morphing {
+  opacity: 0;
+  transform: scale(0.78);
 }
 
 /* Morphing Submit Button */

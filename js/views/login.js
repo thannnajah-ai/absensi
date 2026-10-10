@@ -124,7 +124,7 @@ class LoginView {
                     autocomplete="username"
                     value="${isProd ? '' : (this.currentTab === 'student' ? '1024' : 'admin@sekolah.id')}"
                   />
-                  <div class="login-input-icon-btn" style="pointer-events: none;" id="identifierIcon">
+                  <div class="login-input-icon-static" style="pointer-events: none;" id="identifierIcon">
                     ${this.currentTab === 'student' ? Icons.user(18) : Icons.building(18)}
                   </div>
                 </div>
@@ -238,7 +238,7 @@ class LoginView {
         inputId.placeholder = 'Contoh: admin@sekolah.id';
         if (!isProd && (!inputId.value || inputId.value === '1024')) inputId.value = 'admin@sekolah.id';
       }
-      if (iconId) iconId.innerHTML = Icons.building(18);
+      if (iconId) this.morphIcon(iconId, Icons.building(18));
       if (helpId) helpId.textContent = 'Gunakan alamat email dinas atau akun pengelola sekolah.';
       if (passInput && !isProd && (!passInput.value || passInput.value === '123')) passInput.value = 'admin';
     } else {
@@ -250,10 +250,19 @@ class LoginView {
         inputId.placeholder = 'Contoh: 1024';
         if (!isProd && (!inputId.value || inputId.value === 'admin@sekolah.id')) inputId.value = '1024';
       }
-      if (iconId) iconId.innerHTML = Icons.user(18);
+      if (iconId) this.morphIcon(iconId, Icons.user(18));
       if (helpId) helpId.textContent = 'Masukkan NIS resmi yang terdaftar di buku induk sekolah.';
       if (passInput && !isProd && (!passInput.value || passInput.value === 'admin')) passInput.value = '123';
     }
+  }
+
+  static morphIcon(el, newHtml) {
+    if (!el) return;
+    el.classList.add('icon-morphing');
+    setTimeout(() => {
+      el.innerHTML = newHtml;
+      el.classList.remove('icon-morphing');
+    }, 80);
   }
 
   static togglePassword() {
@@ -264,7 +273,7 @@ class LoginView {
       input.type = this.isPasswordVisible ? 'text' : 'password';
     }
     if (btn) {
-      btn.innerHTML = this.isPasswordVisible ? Icons.eyeOff(18) : Icons.eye(18);
+      this.morphIcon(btn, this.isPasswordVisible ? Icons.eyeOff(18) : Icons.eye(18));
     }
   }
 

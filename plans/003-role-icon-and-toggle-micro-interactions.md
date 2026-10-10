@@ -1,6 +1,6 @@
 # 003 — Role Tab Icon Crossfade and Password Toggle Micro-Interactions
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 8288166
 - **Severity**: LOW
 - **Category**: Missed opportunities / Polish
