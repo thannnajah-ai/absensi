@@ -117,6 +117,18 @@ class AdminView {
           </button>
 
           <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border);">
+            <div style="background: var(--surface-alt); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 10px; font-size: 0.76rem; border: 1px solid var(--border);">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-weight: 700; color: var(--text-secondary);">Supabase Cloud</span>
+                <span class="badge ${typeof SupabaseService !== 'undefined' && SupabaseService.status === 'connected' ? 'badge-success' : 'badge-neutral'}" style="font-size: 0.68rem; padding: 1px 6px;">
+                  ${typeof SupabaseService !== 'undefined' && SupabaseService.status === 'connected' ? 'Terhubung' : 'Siap Sync'}
+                </span>
+              </div>
+              <button class="btn btn-sm btn-outline btn-block scale-press" style="font-size: 0.74rem; min-height: 26px; padding: 2px 6px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 4px;" onclick="AdminView.syncCloud()">
+                ${Icons.refresh(12)} <span>Sinkronkan Cloud</span>
+              </button>
+            </div>
+
             <button class="admin-nav-item" style="color: var(--danger); width: 100%; display: flex; align-items: center; gap: 8px;" onclick="App.logout()">
               <span>${Icons.logOut(18)}</span>
               <span>Keluar</span>
@@ -1588,6 +1600,29 @@ class AdminView {
     btn.closest('.modal-backdrop').remove();
     App.showToast(`Berhasil mengimpor ${imported} data siswa!`, 'success');
     App.renderCurrentView();
+  }
+
+  static async syncCloud() {
+    App.showToast('Menghubungkan ke Supabase Cloud...', 'info');
+    if (typeof SupabaseService === 'undefined' || !SupabaseService.isConfigured()) {
+      App.showToast('Konfigurasi URL atau Key Supabase belum diisi di AppConfig.', 'danger');
+      return;
+    }
+
+    const conn = await SupabaseService.checkConnection();
+    if (!conn.ok) {
+      App.showToast(`Supabase: ${conn.error || 'Gagal tersambung'}. Pastikan skrip supabase_fix_rls.sql telah dijalankan di Supabase.`, 'warning');
+      this.render(document.getElementById('appContent'));
+      return;
+    }
+
+    const res = await SupabaseService.pushToCloud();
+    if (res && res.success) {
+      App.showToast(res.message || 'Data berhasil disinkronkan ke Supabase Cloud!', 'success');
+    } else {
+      App.showToast(`Sinkronisasi parsial: ${res?.error || 'Periksa skema tabel Supabase'}`, 'warning');
+    }
+    this.render(document.getElementById('appContent'));
   }
 }
 

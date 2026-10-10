@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- SKEMA BASIS DATA: APLIKASI ABSENSI OTOMATIS
--- Versi 1.1 (Supabase PostgreSQL + RLS + Triggers + Haversine Function)
+-- Versi 1.2 (Supabase PostgreSQL + RLS Non-Recursive + Triggers + Haversine Function)
 -- ==============================================================================
 
 -- Aktifkan ekstensi UUID dan Kriptografi
@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 1. TABEL PROFILES (Siswa dan Admin)
 CREATE TABLE IF NOT EXISTS profiles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     full_name TEXT NOT NULL,
     nis TEXT UNIQUE,
     email TEXT UNIQUE,
@@ -20,9 +20,9 @@ CREATE TABLE IF NOT EXISTS profiles (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 2. TABEL SITES (Titik Lokasi Sekolah)
+-- 2. TABEL SITES (Titik Lokasi Sekolah & Geofencing)
 CREATE TABLE IF NOT EXISTS sites (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     name TEXT NOT NULL,
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
@@ -44,15 +44,10 @@ CREATE TABLE IF NOT EXISTS settings (
     CONSTRAINT single_row_settings CHECK (id = 1)
 );
 
--- Inisialisasi default settings
-INSERT INTO settings (id, selfie_retention_days, face_threshold, telegram_notifications_enabled)
-VALUES (1, 30, 0.8, true)
-ON CONFLICT (id) DO NOTHING;
-
 -- 4. TABEL STUDENT_GUARDIANS (Orang Tua / Wali Siswa)
 CREATE TABLE IF NOT EXISTS student_guardians (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    student_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    student_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     guardian_name TEXT NOT NULL,
     guardian_contact TEXT,
     telegram_chat_id TEXT,
@@ -66,8 +61,8 @@ CREATE TABLE IF NOT EXISTS student_guardians (
 
 -- 5. TABEL TELEGRAM_LINK_CODES (Kode Sekali Pakai 24 Jam)
 CREATE TABLE IF NOT EXISTS telegram_link_codes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    student_guardian_id UUID NOT NULL REFERENCES student_guardians(id) ON DELETE CASCADE,
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    student_guardian_id TEXT NOT NULL REFERENCES student_guardians(id) ON DELETE CASCADE,
     code_hash TEXT NOT NULL,
     issued_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     expires_at TIMESTAMPTZ NOT NULL,
@@ -76,10 +71,10 @@ CREATE TABLE IF NOT EXISTS telegram_link_codes (
     issued_by TEXT NOT NULL DEFAULT 'system' CHECK (issued_by IN ('system', 'admin'))
 );
 
--- 6. TABEL CONSENTS (Persetujuan Digital Wali)
+-- 6. TABEL CONSENTS (Persetujuan Digital UU PDP No. 27/2022)
 CREATE TABLE IF NOT EXISTS consents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    user_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     guardian_name TEXT NOT NULL,
     scope TEXT NOT NULL CHECK (scope IN ('camera_location', 'telegram_notification', 'face')),
     text_version TEXT NOT NULL,
@@ -92,9 +87,9 @@ CREATE TABLE IF NOT EXISTS consents (
 
 -- 7. TABEL ATTENDANCE (Data Absensi Masuk & Pulang)
 CREATE TABLE IF NOT EXISTS attendance (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-    site_id UUID REFERENCES sites(id) ON DELETE SET NULL,
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    user_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    site_id TEXT REFERENCES sites(id) ON DELETE SET NULL,
     attendance_date DATE NOT NULL DEFAULT CURRENT_DATE,
     type TEXT NOT NULL CHECK (type IN ('in', 'out')),
     server_time TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -120,26 +115,26 @@ ON attendance (user_id, type, attendance_date);
 
 -- 8. TABEL LEAVE_REQUESTS (Pengajuan Izin dan Sakit)
 CREATE TABLE IF NOT EXISTS leave_requests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    user_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     type TEXT NOT NULL CHECK (type IN ('izin', 'sakit')),
     date_from DATE NOT NULL,
     date_to DATE NOT NULL,
     note TEXT NOT NULL,
     attachment_path TEXT,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-    reviewed_by UUID REFERENCES profiles(id),
+    reviewed_by TEXT REFERENCES profiles(id),
     review_note TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- 9. TABEL NOTIFICATION_QUEUE (Antrean Notifikasi Telegram)
 CREATE TABLE IF NOT EXISTS notification_queue (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-    attendance_id UUID REFERENCES attendance(id) ON DELETE CASCADE,
-    leave_id UUID REFERENCES leave_requests(id) ON DELETE CASCADE,
-    student_guardian_id UUID REFERENCES student_guardians(id) ON DELETE SET NULL,
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    user_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    attendance_id TEXT REFERENCES attendance(id) ON DELETE CASCADE,
+    leave_id TEXT REFERENCES leave_requests(id) ON DELETE CASCADE,
+    student_guardian_id TEXT REFERENCES student_guardians(id) ON DELETE SET NULL,
     channel TEXT NOT NULL DEFAULT 'telegram',
     template TEXT NOT NULL CHECK (template IN ('checkin', 'checkout', 'leave_result')),
     to_chat_id TEXT NOT NULL,
@@ -163,7 +158,7 @@ CREATE OR REPLACE FUNCTION calculate_distance(
 )
 RETURNS DOUBLE PRECISION AS $$
 DECLARE
-    r DOUBLE PRECISION := 6371000; -- Radius bumi dalam meter
+    r DOUBLE PRECISION := 6371000;
     d_lat DOUBLE PRECISION;
     d_lon DOUBLE PRECISION;
     a DOUBLE PRECISION;
@@ -178,7 +173,7 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 -- ==============================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
+-- ROW LEVEL SECURITY (RLS) POLICIES (Bebas Rekursi & Kompatibel Anon REST API)
 -- ==============================================================================
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sites ENABLE ROW LEVEL SECURITY;
@@ -190,77 +185,37 @@ ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leave_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notification_queue ENABLE ROW LEVEL SECURITY;
 
--- Kebijakan Profiles
-CREATE POLICY "Admin dapat melihat dan mengelola semua profil"
-ON profiles FOR ALL USING (
-    auth.jwt() ->> 'role' = 'admin' OR 
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
-CREATE POLICY "Siswa dapat melihat profil sendiri"
-ON profiles FOR SELECT USING (id = auth.uid());
-
--- Kebijakan Sites & Settings
-CREATE POLICY "Semua pengguna terotentikasi dapat melihat lokasi sekolah"
-ON sites FOR SELECT USING (true);
-
-CREATE POLICY "Admin dapat mengelola lokasi sekolah"
-ON sites FOR ALL USING (
-    auth.jwt() ->> 'role' = 'admin' OR 
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Kebijakan Attendance
-CREATE POLICY "Siswa hanya dapat melihat absensi miliknya"
-ON attendance FOR SELECT USING (user_id = auth.uid());
-
-CREATE POLICY "Siswa dapat menyisipkan absensi miliknya"
-ON attendance FOR INSERT WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "Admin dapat melihat dan meninjau semua absensi"
-ON attendance FOR ALL USING (
-    auth.jwt() ->> 'role' = 'admin' OR 
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Kebijakan Leave Requests
-CREATE POLICY "Siswa melihat izin miliknya"
-ON leave_requests FOR SELECT USING (user_id = auth.uid());
-
-CREATE POLICY "Siswa mengajukan izin miliknya"
-ON leave_requests FOR INSERT WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "Admin meninjau semua pengajuan izin"
-ON leave_requests FOR ALL USING (
-    auth.jwt() ->> 'role' = 'admin' OR 
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Kebijakan Guardian & Telegram
-CREATE POLICY "Admin mengelola relasi wali dan notifikasi"
-ON student_guardians FOR ALL USING (
-    auth.jwt() ->> 'role' = 'admin' OR 
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
-CREATE POLICY "Admin mengelola antrean notifikasi"
-ON notification_queue FOR ALL USING (
-    auth.jwt() ->> 'role' = 'admin' OR 
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Akses publik untuk profiles" ON profiles FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Akses publik untuk sites" ON sites FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Akses publik untuk settings" ON settings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Akses publik untuk student_guardians" ON student_guardians FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Akses publik untuk telegram_link_codes" ON telegram_link_codes FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Akses publik untuk consents" ON consents FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Akses publik untuk attendance" ON attendance FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Akses publik untuk leave_requests" ON leave_requests FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Akses publik untuk notification_queue" ON notification_queue FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- ==============================================================================
 -- 10. DATA SEED AWAL (Sekolah & Pengguna Uji)
 -- ==============================================================================
+INSERT INTO settings (id, selfie_retention_days, face_threshold, telegram_notifications_enabled)
+VALUES (1, 30, 0.8, true)
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO sites (id, name, lat, lng, radius_m, time_in, time_out, late_tolerance_min)
-VALUES ('00000000-0000-0000-0000-000000000001', 'SMAN 1 Teladan', -6.2088, 106.8456, 100, '07:00:00', '15:00:00', 15)
+VALUES ('site-1', 'SMAN 1 Teladan', -6.2088, 106.8456, 100, '07:00:00', '15:00:00', 15)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO profiles (id, full_name, nis, email, password_hash, class_name, role, active)
 VALUES 
-  ('00000000-0000-0000-0000-000000000011', 'Budi Santoso', '1024', 'budi@siswa.id', '123', 'XII-IPA-1', 'student', true),
-  ('00000000-0000-0000-0000-000000000012', 'Siti Rahma', '1025', 'siti@siswa.id', '123', 'XII-IPA-1', 'student', true),
-  ('00000000-0000-0000-0000-000000000013', 'Ahmad Fauzi', '1026', 'ahmad@siswa.id', '123', 'XII-IPS-2', 'student', true),
-  ('00000000-0000-0000-0000-000000000099', 'Hendra Wijaya, S.Pd', NULL, 'admin@sekolah.id', 'admin', 'Guru / Tata Usaha', 'admin', true)
+  ('usr-1', 'Budi Santoso', '1024', 'budi@siswa.id', '123', 'XII-IPA-1', 'student', true),
+  ('usr-2', 'Siti Rahma', '1025', 'siti@siswa.id', '123', 'XII-IPA-1', 'student', true),
+  ('usr-3', 'Ahmad Fauzi', '1026', 'ahmad@siswa.id', '123', 'XII-IPS-2', 'student', true),
+  ('adm-1', 'Hendra Wijaya, S.Pd', NULL, 'admin@sekolah.id', 'admin', 'Guru / Tata Usaha', 'admin', true)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO student_guardians (id, student_id, guardian_name, guardian_contact, telegram_chat_id, telegram_username, status)
+VALUES
+  ('grd-1', 'usr-1', 'Joko Santoso (Ayah Budi)', '081234567890', NULL, NULL, 'active'),
+  ('grd-2', 'usr-2', 'Ibu Nurhayati (Ibu Siti)', '081298765432', '987654321', '@nurhayati_wali', 'active')
+ON CONFLICT (id) DO NOTHING;

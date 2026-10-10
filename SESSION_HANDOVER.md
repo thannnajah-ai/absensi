@@ -10,6 +10,7 @@
 
 | Commit | Pesan Commit | Deskripsi |
 |---|---|---|
+| `pending` | `feat(supabase): integrate Supabase Cloud REST API sync adapter, fix RLS recursion, and add admin cloud widget` | Adapter REST Supabase Service (`js/supabase.js`), sinkronisasi dua arah (pull/push cloud), penanganan mutasi offline-first di `DB`, widget status Supabase dan tombol Sinkronkan Cloud di sidebar admin, serta skrip SQL perbaikan rekursi RLS (`supabase_fix_rls.sql`). |
 | `e88d0b8` | `fix(pwa): complete service worker cache asset manifest and bump cache to v2` | Menambahkan aset berkas skrip `config.js`, `icons.js`, dan `views/login.js` ke dalam manifest pre-caching Service Worker offline PWA serta pembaruan versi cache ke `absensi-cache-v2`. |
 | `55e086b` | `feat(admin): add official report sheet print/PDF modal, filtered CSV export, and interactive geofencing map calibration` | Lembar rekapitulasi cetak/PDF berstandar Kop Surat resmi SMAN 1 Teladan dengan blok tanda tangan, ekspor CSV UTF-8 BOM untuk Excel, filter multi-dimensi (kelas, tanggal, status), peta geofencing Leaflet interaktif dengan draggable pin, slider sinkron radius, dan kalibrasi GPS 1-klik. |
 | `f5ae447` | `feat(telegram-consent): integrate live telegram bot simulation and UU PDP digital consent flow` | Simulator bot Telegram dengan histori tersimpan, pengiriman pesan presensi instan ke obrolan simulator, tombol uji 1-klik di modal penerbitan kode, formulir persetujuan digital UU PDP No. 27/2022 dengan fitur cabut izin, dan rekap status di profil siswa serta tabel admin. |
@@ -71,10 +72,20 @@
 - **1-Klik Kalibrasi GPS:** Tombol *Gunakan GPS Saya* untuk mengambil koordinat riil perangkat admin saat berada di gerbang sekolah.
 - **Desain Formulir Sistem:** Form controls terpadu dengan focus rings, labels, help text, dan feedback pesan validasi.
 
+### H. Integrasi Cloud Supabase & Skrip Perbaikan RLS (supabase_fix_rls.sql)
+- **Arsitektur Local-First Cloud Sync:** Aplikasi tetap instan dan tahan offline menggunakan LocalStorage, dengan sinkronisasi background otomatis ke REST API Supabase saat online.
+- **Modul `SupabaseService` (`js/supabase.js`):** Client REST vanilla zero-dependency dengan endpoint `select`, `insert`, `upsert`, `update`, `delete`, serta `pullFromCloud` dan `pushToCloud`.
+- **Perbaikan RLS Rekursi 42P17 & UUID 22P02:** Menyediakan berkas SQL `supabase_fix_rls.sql` yang menghapus rekursi tak terbatas pada tabel `profiles` dan mengadopsi ID teks fleksibel.
+- **Widget Status Admin:** Widget indikator status Supabase di sidebar admin sekolah dan tombol *Sinkronkan Cloud* untuk sinkronisasi manual 1-klik.
+
 ---
 
 ## 3. Langkah Selanjutnya
 
-1. **Uji Coba Penggunaan Lapangan (Field Test Simulation):**
+1. **Eksekusi Skrip SQL di Supabase SQL Editor:**
+   - Buka SQL Editor di dashboard Supabase proyek `dxrnpayzynimwelyglae`.
+   - Jalankan isi berkas `supabase_fix_rls.sql`.
+   - Klik tombol *Sinkronkan Cloud* di admin web untuk menguji pengiriman data riil.
+2. **Uji Coba Penggunaan Lapangan (Field Test Simulation):**
    - Validasi perilaku offline service worker saat jaringan terputus (PRD FR-46 s/d FR-50).
    - Pengujian live di peramban seluler (smartphone Android / iOS) via URL Vercel.

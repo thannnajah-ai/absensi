@@ -203,6 +203,19 @@ class DB {
     localStorage.setItem(DB_KEY, JSON.stringify(DEFAULT_DB));
   }
 
+  // --- Supabase Cloud Sync ---
+  static async syncFromSupabase() {
+    if (typeof SupabaseService === 'undefined' || !SupabaseService.isConfigured()) return;
+    try {
+      const res = await SupabaseService.pullFromCloud();
+      if (res && res.success) {
+        console.log('[DB] Sukses sinkronisasi data dari Supabase:', res.counts);
+      }
+    } catch (e) {
+      console.warn('[DB] Catatan sinkronisasi Supabase:', e.message);
+    }
+  }
+
   // --- Profiles ---
   static getProfiles() {
     return this.get().profiles || [];
@@ -252,6 +265,11 @@ class DB {
     const db = this.get();
     db.sites[0] = { ...db.sites[0], ...siteData };
     this.save(db);
+
+    if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+      SupabaseService.update('sites', 'id', db.sites[0].id, db.sites[0]).catch(e => console.warn('[Supabase] Gagal update site:', e.message));
+    }
+
     return db.sites[0];
   }
 
@@ -303,6 +321,11 @@ class DB {
     // Enqueue telegram notification if enabled
     this.createAttendanceNotification(record);
 
+    // Sync to Supabase in background
+    if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+      SupabaseService.insert('attendance', record).catch(e => console.warn('[Supabase] Gagal insert attendance:', e.message));
+    }
+
     return record;
   }
 
@@ -313,6 +336,14 @@ class DB {
       db.attendance[idx].status = newStatus;
       db.attendance[idx].review_note = reviewNote;
       this.save(db);
+
+      if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+        SupabaseService.update('attendance', 'id', id, {
+          status: newStatus,
+          manual_reason: reviewNote
+        }).catch(e => console.warn('[Supabase] Gagal update status attendance:', e.message));
+      }
+
       return db.attendance[idx];
     }
     return null;
@@ -327,6 +358,11 @@ class DB {
         db.notification_queue = db.notification_queue.filter(n => n.attendance_id !== id);
       }
       this.save(db);
+
+      if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+        SupabaseService.delete('attendance', 'id', id).catch(e => console.warn('[Supabase] Gagal delete attendance:', e.message));
+      }
+
       return removed;
     }
     return null;
@@ -533,6 +569,11 @@ class DB {
     if (!db.leave_requests) db.leave_requests = [];
     db.leave_requests.push(req);
     this.save(db);
+
+    if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+      SupabaseService.insert('leave_requests', req).catch(e => console.warn('[Supabase] Gagal insert leave_requests:', e.message));
+    }
+
     return req;
   }
 
@@ -544,6 +585,15 @@ class DB {
       item.review_note = reviewNote;
       item.reviewed_by = reviewerId;
       this.save(db);
+
+      if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+        SupabaseService.update('leave_requests', 'id', id, {
+          status: status,
+          review_note: reviewNote,
+          reviewed_by: reviewerId
+        }).catch(e => console.warn('[Supabase] Gagal update leave_requests:', e.message));
+      }
+
       return item;
     }
     return null;
@@ -563,6 +613,11 @@ class DB {
     if (!db.consents) db.consents = [];
     db.consents.push(consent);
     this.save(db);
+
+    if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+      SupabaseService.insert('consents', consent).catch(e => console.warn('[Supabase] Gagal insert consents:', e.message));
+    }
+
     return consent;
   }
 
@@ -571,6 +626,10 @@ class DB {
     if (db.consents) {
       db.consents = db.consents.filter(c => c.user_id !== userId);
       this.save(db);
+
+      if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+        SupabaseService.delete('consents', 'user_id', userId).catch(e => console.warn('[Supabase] Gagal delete consents:', e.message));
+      }
     }
   }
 }

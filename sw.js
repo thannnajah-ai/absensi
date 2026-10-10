@@ -1,4 +1,4 @@
-const CACHE_NAME = 'absensi-cache-v2';
+const CACHE_NAME = 'absensi-cache-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -6,6 +6,7 @@ const ASSETS_TO_CACHE = [
   '/css/style.css',
   '/css/components.css',
   '/js/config.js',
+  '/js/supabase.js',
   '/js/icons.js',
   '/js/db.js',
   '/js/geo.js',

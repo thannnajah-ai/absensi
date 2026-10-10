@@ -57,6 +57,15 @@ class App {
         TelegramService.syncBotUpdates();
       }, 8000);
     }
+
+    // Auto-sync data dengan Supabase Cloud jika terkonfigurasi
+    if (typeof SupabaseService !== 'undefined' && SupabaseService.isConfigured()) {
+      SupabaseService.checkConnection().then(conn => {
+        if (conn.ok && typeof DB !== 'undefined') {
+          DB.syncFromSupabase();
+        }
+      });
+    }
   }
 
   static login(user, silentToast = false) {
