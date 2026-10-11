@@ -87,7 +87,7 @@ class ConsentView {
 
           <div class="form-group" style="margin-top: 6px;">
             <label class="form-label form-label-required">Nama Lengkap Orang Tua / Wali yang Menyetujui</label>
-            <input type="text" id="consentGuardianName" class="form-input" value="${signedGuardianName}" placeholder="Masukkan nama lengkap orang tua/wali..." />
+            <input type="text" id="consentGuardianName" class="form-input" value="${signedGuardianName}" placeholder="Masukkan nama lengkap orang tua/wali..." autocomplete="name" autocapitalize="words" enterkeyhint="done" />
           </div>
 
           <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">

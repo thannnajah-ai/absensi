@@ -887,11 +887,11 @@ class AdminView {
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
                   <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">Latitude</span>
-                  <input type="number" step="0.000001" id="siteLat" class="form-input tabular-nums" value="${site.lat}" />
+                  <input type="number" step="0.000001" id="siteLat" class="form-input tabular-nums" value="${site.lat}" inputmode="decimal" />
                 </div>
                 <div>
                   <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">Longitude</span>
-                  <input type="number" step="0.000001" id="siteLng" class="form-input tabular-nums" value="${site.lng}" />
+                  <input type="number" step="0.000001" id="siteLng" class="form-input tabular-nums" value="${site.lng}" inputmode="decimal" />
                 </div>
               </div>
               <span class="form-help">Klik pada peta atau geser pin marker untuk memindahkan koordinat gerbang secara visual.</span>
@@ -904,7 +904,7 @@ class AdminView {
               </div>
               <div style="display: flex; align-items: center; gap: 12px;">
                 <input type="range" id="siteRadiusSlider" min="20" max="500" step="5" value="${site.radius_m}" class="form-range" style="flex: 1;" />
-                <input type="number" id="siteRadius" class="form-input tabular-nums" style="width: 90px; text-align: center;" value="${site.radius_m}" min="10" max="1000" />
+                <input type="number" id="siteRadius" class="form-input tabular-nums" style="width: 90px; text-align: center;" value="${site.radius_m}" min="10" max="1000" inputmode="numeric" />
               </div>
               <span class="form-help">Default 100m (PRD FR-8). Di luar radius ini, siswa wajib menyertakan alasan sah untuk ditinjau admin.</span>
             </div>
@@ -920,7 +920,7 @@ class AdminView {
               </div>
               <div class="form-group">
                 <label class="form-label form-label-required">Toleransi (Menit)</label>
-                <input type="number" id="siteTolerance" class="form-input" value="${site.late_tolerance_min}" />
+                <input type="number" id="siteTolerance" class="form-input" value="${site.late_tolerance_min}" inputmode="numeric" />
               </div>
             </div>
 
@@ -1307,7 +1307,7 @@ class AdminView {
           </p>
           <div class="form-group">
             <label class="form-label form-label-required">Telegram Chat ID Penerima</label>
-            <input type="text" id="testChatId" class="form-input" placeholder="Contoh: 123456789" />
+            <input type="text" id="testChatId" class="form-input tabular-nums" placeholder="Contoh: 123456789" inputmode="numeric" enterkeyhint="send" />
             <span class="form-help">Pastikan Anda sudah menekan START pada @${botUser} terlebih dahulu agar bot diizinkan mengirim pesan.</span>
           </div>
           <div class="form-group">
@@ -1636,15 +1636,15 @@ class AdminView {
           </div>
           <div class="form-group">
             <label class="form-label form-label-required">Nama Lengkap Siswa</label>
-            <input type="text" id="newName" class="form-input" placeholder="Contoh: Muhammad Rizky" />
+            <input type="text" id="newName" class="form-input" placeholder="Contoh: Muhammad Rizky" autocomplete="name" autocapitalize="words" enterkeyhint="next" />
           </div>
           <div class="form-group">
             <label class="form-label form-label-required">Kelas</label>
-            <input type="text" id="newClass" class="form-input" placeholder="Contoh: XII-IPA-2" />
+            <input type="text" id="newClass" class="form-input" placeholder="Contoh: XII-IPA-2" autocapitalize="characters" enterkeyhint="next" />
           </div>
           <div class="form-group">
             <label class="form-label">Nama Orang Tua / Wali</label>
-            <input type="text" id="newGuardianName" class="form-input" placeholder="Contoh: Bapak Haryono" />
+            <input type="text" id="newGuardianName" class="form-input" placeholder="Contoh: Bapak Haryono" autocomplete="name" autocapitalize="words" enterkeyhint="done" />
           </div>
         </div>
         <div class="modal-footer">
