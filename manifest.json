@@ -1,6 +1,6 @@
 {
-  "name": "Absensi Otomatis Siswa",
-  "short_name": "e-Absensi",
+  "name": "e-Absensi Madrasah Mu'allimin Muhammadiyah Yogyakarta",
+  "short_name": "e-Absensi Mu'allimin",
   "description": "Aplikasi Absensi Otomatis Siswa dengan Selfie, Jam Server, Lokasi GPS, dan Notifikasi Telegram",
   "start_url": "/",
   "display": "standalone",

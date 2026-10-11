@@ -10,9 +10,9 @@ const DEFAULT_DB = {
   sites: [
     {
       id: 'site-1',
-      name: 'SMAN 1 Teladan',
-      lat: -6.2088,
-      lng: 106.8456,
+      name: "Madrasah Mu'allimin Muhammadiyah Yogyakarta",
+      lat: -7.8037,
+      lng: 110.3533,
       radius_m: 100,
       time_in: '07:00',
       time_out: '15:00',
@@ -120,8 +120,8 @@ const DEFAULT_DB = {
       type: 'in',
       server_time: new Date(new Date().setHours(6, 55, 0, 0)).toISOString(),
       device_time: new Date(new Date().setHours(6, 55, 0, 0)).toISOString(),
-      lat: -6.2088,
-      lng: 106.8456,
+      lat: -7.8037,
+      lng: 110.3533,
       accuracy_m: 14,
       distance_m: 12,
       selfie_path: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23DBEAFE"/><circle cx="100" cy="80" r="40" fill="%232563EB"/><path d="M40 180 C40 130 160 130 160 180 Z" fill="%231E40AF"/><text x="100" y="195" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23FFF">Siti Rahma</text></svg>',
@@ -160,7 +160,7 @@ const DEFAULT_DB = {
         time: '06:55 WIB',
         date: new Date().toLocaleDateString('id-ID'),
         status: 'Tepat Waktu',
-        school: 'SMAN 1 Teladan'
+        school: "Madrasah Mu'allimin Muhammadiyah Yogyakarta"
       },
       status: 'sent',
       attempts: 1,
@@ -184,7 +184,17 @@ class DB {
         localStorage.setItem(DB_KEY, JSON.stringify(DEFAULT_DB));
         return DEFAULT_DB;
       }
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      // Auto-migrate site name & coordinates if using old default
+      if (parsed.sites && parsed.sites[0]) {
+        if (parsed.sites[0].name === 'SMAN 1 Teladan' || parsed.sites[0].lat === -6.2088) {
+          parsed.sites[0].name = "Madrasah Mu'allimin Muhammadiyah Yogyakarta";
+          parsed.sites[0].lat = -7.8037;
+          parsed.sites[0].lng = 110.3533;
+          localStorage.setItem(DB_KEY, JSON.stringify(parsed));
+        }
+      }
+      return parsed;
     } catch (e) {
       console.error('Error reading DB:', e);
       return DEFAULT_DB;

@@ -30,8 +30,8 @@ class GeoService {
       this.mockMode = 'real';
     }
 
-    const schoolLat = site ? site.lat : -6.2088;
-    const schoolLng = site ? site.lng : 106.8456;
+    const schoolLat = site ? site.lat : (window.AppConfig?.defaultLat || -7.8037);
+    const schoolLng = site ? site.lng : (window.AppConfig?.defaultLng || 110.3533);
 
     if (this.mockMode === 'school') {
       // Tepat di sekolah (misal 15 meter dari titik sekolah)

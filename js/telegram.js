@@ -23,7 +23,7 @@ class TelegramService {
       `*Waktu Server:* ${payload.time}\n` +
       `*Status:* ${payload.status}\n` +
       `-----------------------------------\n` +
-      `_Pesan otomatis sistem presensi resmi SMAN 1 Teladan._`
+      `_Pesan otomatis sistem presensi resmi ${window.AppConfig?.schoolName || "Madrasah Mu'allimin Muhammadiyah Yogyakarta"}._`
     );
   }
 
@@ -108,7 +108,7 @@ class TelegramService {
             const student = DB.getProfileById(linkResult.guardian.student_id);
             await this.sendRealMessage(
               chatId,
-              `*NOTIFIKASI RESMI SMAN 1 TELADAN*\n\n` +
+              `*NOTIFIKASI RESMI MADRASAH MU'ALLIMIN MUHAMMADIYAH YOGYAKARTA*\n\n` +
               `Akun Telegram Anda (*${username}*) berhasil ditautkan ke data siswa:\n` +
               `*Nama:* ${student?.full_name}\n` +
               `*Kelas:* ${student?.class_name}\n\n` +
@@ -146,7 +146,7 @@ class TelegramService {
         {
           id: 'msg-init-1',
           sender: 'bot',
-          text: 'Selamat datang di Layanan Notifikasi Kehadiran SMAN 1 Teladan.\n\nSilakan masukkan *Kode Penautan 6-Karakter* (atau perintah `/start <KODE>`) yang diterbitkan pihak sekolah untuk menautkan akun ini ke data siswa.',
+          text: "Selamat datang di Layanan Notifikasi Kehadiran Madrasah Mu'allimin Muhammadiyah Yogyakarta.\\n\\nSilakan masukkan *Kode Penautan 6-Karakter* (atau perintah `/start <KODE>`) yang diterbitkan pihak sekolah untuk menautkan akun ini ke data siswa.",
           time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
         }
       ];
@@ -210,7 +210,7 @@ class TelegramService {
     if (res.success) {
       const student = DB.getProfileById(res.guardian.student_id);
       return {
-        reply: `*NOTIFIKASI RESMI SMAN 1 TELADAN*\n\nAkun Telegram Anda kini resmi ditautkan ke data siswa:\n*Nama:* ${student?.full_name}\n*Kelas:* ${student?.class_name}\n*NIS:* ${student?.nis}\n\nMulai saat ini, notifikasi presensi masuk & pulang ananda akan otomatis dikirimkan ke ruang obrolan ini.`,
+        reply: `*NOTIFIKASI RESMI MADRASAH MU'ALLIMIN MUHAMMADIYAH YOGYAKARTA*\n\nAkun Telegram Anda kini resmi ditautkan ke data siswa:\n*Nama:* ${student?.full_name}\n*Kelas:* ${student?.class_name}\n*NIS:* ${student?.nis}\n\nMulai saat ini, notifikasi presensi masuk & pulang ananda akan otomatis dikirimkan ke ruang obrolan ini.`,
         success: true,
         guardian: res.guardian
       };

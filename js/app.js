@@ -108,7 +108,7 @@ class App {
     if (!this.currentUser) {
       roleContainer.innerHTML = `
         <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">
-          ${window.AppConfig?.schoolName || 'SMAN 1 Teladan'}
+          ${window.AppConfig?.schoolName || "Madrasah Mu'allimin Muhammadiyah Yogyakarta"}
         </span>
       `;
       return;
@@ -282,7 +282,7 @@ class App {
               <div class="tg-name">@${botUser}</div>
               <div class="tg-status">
                 <span class="tg-status-dot"></span>
-                <span>Bot Resmi Presensi SMAN 1 Teladan</span>
+                <span>Bot Resmi Presensi ${window.AppConfig?.schoolName || "Madrasah Mu'allimin"}</span>
               </div>
             </div>
           </div>

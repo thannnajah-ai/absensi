@@ -1223,7 +1223,7 @@ class AdminView {
           </div>
           <div class="form-group">
             <label class="form-label">Teks Pesan</label>
-            <textarea id="testMsgText" class="form-textarea" rows="3">Halo! Ini adalah pesan uji coba resmi dari Sistem Presensi SMAN 1 Teladan via @${botUser}.</textarea>
+            <textarea id="testMsgText" class="form-textarea" rows="3">Halo! Ini adalah pesan uji coba resmi dari Sistem Presensi Madrasah Mu'allimin Muhammadiyah Yogyakarta via @${botUser}.</textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -1341,13 +1341,13 @@ class AdminView {
         <div class="report-sheet">
           <!-- Kop Surat Resmi -->
           <div class="report-kop">
-            <div class="report-kop-logo">
-              SMA
+            <div class="report-kop-logo" style="background: #15803D; color: #FFF; font-weight: 800; font-size: 0.9rem;">
+              MMM
             </div>
             <div class="report-kop-text">
-              <div class="report-kop-instansi">PEMERINTAH DAERAH PROVINSI JAWA TIMUR • DINAS PENDIDIKAN</div>
+              <div class="report-kop-instansi">PIMPINAN PUSAT MUHAMMADIYAH • MAJELIS PENDIDIKAN DASAR DAN MENENGAH</div>
               <div class="report-kop-sekolah">${site.name.toUpperCase()}</div>
-              <div class="report-kop-alamat">Jalan Pendidikan No. 1 • Telp: (031) 555-0199 • Surel: tatausaha@sman1teladan.sch.id</div>
+              <div class="report-kop-alamat">Jl. Letjen S.Parman No.68, Wirobrajan, Kota Yogyakarta, D.I. Yogyakarta 55252 • Telp: (0274) 373122 • Situs: muallimin.sch.id</div>
             </div>
           </div>
 

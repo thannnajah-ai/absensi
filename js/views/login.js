@@ -30,7 +30,7 @@ class LoginView {
                 ${Icons.schoolBadge(36)}
               </div>
               <h1 class="login-hero-title">
-                ${window.AppConfig?.schoolName || 'SMAN 1 Teladan'}
+                ${window.AppConfig?.schoolName || "Madrasah Mu'allimin Muhammadiyah Yogyakarta"}
               </h1>
               <p class="login-hero-desc">
                 Portal Presensi Terpadu dengan Verifikasi Wajah, Waktu Server & Geofencing GPS.
@@ -188,7 +188,7 @@ class LoginView {
               </div>
             ` : `
               <div style="margin-top: 20px; text-align: center; font-size: 0.76rem; color: var(--text-muted);">
-                Lupa kata sandi? Hubungi Bagian Tata Usaha SMAN 1 Teladan.
+                Lupa kata sandi? Hubungi Bagian Tata Usaha Madrasah Mu'allimin Muhammadiyah Yogyakarta.
               </div>
             `}
 
@@ -347,7 +347,7 @@ class LoginView {
   static showWelcomeTransition(user) {
     const roleLabel = user.role === 'admin' 
       ? 'Administrator / Tenaga Pendidik' 
-      : (user.class_name ? `${user.class_name} • NIS: ${user.nis}` : 'Siswa SMAN 1 Teladan');
+      : (user.class_name ? `${user.class_name} • NIS: ${user.nis}` : "Santri/Siswa Madrasah Mu'allimin");
 
     const overlay = document.createElement('div');
     overlay.className = 'welcome-transition-overlay';

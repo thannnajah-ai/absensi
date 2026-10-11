@@ -213,15 +213,15 @@ CREATE POLICY "Akses anon & auth untuk leave_requests" ON leave_requests FOR ALL
 CREATE POLICY "Akses anon & auth untuk notification_queue" ON notification_queue FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- ==============================================================================
--- 5. DATA AWAL (SEEDS RESMI SMAN 1 TELADAN)
+-- 5. DATA AWAL (SEEDS RESMI MADRASAH MU'ALLIMIN MUHAMMADIYAH YOGYAKARTA)
 -- ==============================================================================
 INSERT INTO settings (id, selfie_retention_days, face_threshold, telegram_notifications_enabled)
 VALUES (1, 30, 0.8, true)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO sites (id, name, lat, lng, radius_m, time_in, time_out, late_tolerance_min)
-VALUES ('site-1', 'SMAN 1 Teladan', -6.2088, 106.8456, 100, '07:00:00', '15:00:00', 15)
-ON CONFLICT (id) DO NOTHING;
+VALUES ('site-1', 'Madrasah Mu''allimin Muhammadiyah Yogyakarta', -7.8037, 110.3533, 100, '07:00:00', '15:00:00', 15)
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, lat = EXCLUDED.lat, lng = EXCLUDED.lng;
 
 INSERT INTO profiles (id, full_name, nis, email, password_hash, class_name, role, active)
 VALUES 
