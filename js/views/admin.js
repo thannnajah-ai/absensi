@@ -189,12 +189,12 @@ class AdminView {
 
     return `
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
-          <div>
-            <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);">Dashboard Ringkasan Hari Ini</h1>
-            <p style="font-size: 0.9rem; color: var(--text-secondary);">${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+        <div class="admin-page-header">
+          <div class="admin-header-title">
+            <h1>Dashboard Ringkasan Hari Ini</h1>
+            <p>${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div class="admin-header-actions">
             <button class="btn btn-secondary scale-press" style="display: inline-flex; align-items: center; gap: 6px;" onclick="AdminView.syncCloud()">
               <span>☁️</span>
               <span>Sinkronkan Supabase</span>
@@ -243,50 +243,58 @@ class AdminView {
         <div class="card" style="margin-top: 24px;">
           <div class="card-header">
             <span class="card-title">Aktivitas Absensi Terbaru</span>
-            <button class="btn btn-sm btn-outline" onclick="AdminView.setTab('rekap')">Semua Data</button>
+            <button class="btn btn-sm btn-outline scale-press" onclick="AdminView.setTab('rekap')">Semua Data</button>
           </div>
-          <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Siswa</th>
-                  <th>Kelas</th>
-                  <th>Tipe</th>
-                  <th>Jam Server</th>
-                  <th>Jarak / Radius</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${allAttendance.slice(0, 5).map(att => {
-                  const student = DB.getProfileById(att.user_id);
-                  return `
-                    <tr>
-                      <td>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                          <img src="${att.selfie_path}" style="width: 34px; height: 34px; border-radius: 6px; object-fit: cover;" />
-                          <div>
-                            <b>${student?.full_name || 'Siswa'}</b>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">NIS: ${student?.nis || '-'}</div>
+          ${allAttendance.length === 0 ? `
+            <div class="empty-state-box">
+              <div class="empty-state-icon">${Icons.calendar(28)}</div>
+              <div class="empty-state-title">Belum Ada Aktivitas</div>
+              <div class="empty-state-desc">Belum ada siswa yang melakukan absensi hari ini.</div>
+            </div>
+          ` : `
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Siswa</th>
+                    <th>Kelas</th>
+                    <th>Tipe</th>
+                    <th>Jam Server</th>
+                    <th>Jarak / Radius</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${allAttendance.slice(0, 5).map(att => {
+                    const student = DB.getProfileById(att.user_id);
+                    return `
+                      <tr>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${att.selfie_path}" style="width: 34px; height: 34px; border-radius: 6px; object-fit: cover;" />
+                            <div>
+                              <b>${student?.full_name || 'Siswa'}</b>
+                              <div style="font-size: 0.75rem; color: var(--text-muted);">NIS: ${student?.nis || '-'}</div>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>${student?.class_name || '-'}</td>
-                      <td><b>${att.type === 'in' ? 'Masuk' : 'Pulang'}</b></td>
-                      <td class="tabular-nums">${new Date(att.server_time).toLocaleTimeString('id-ID')} WIB</td>
-                      <td>${GeoService.formatDistance(att.distance_m)}</td>
-                      <td>${AdminView.getStatusBadgeHtml(att.status)}</td>
-                      <td style="display: flex; gap: 6px;">
-                        <button class="btn btn-sm btn-outline scale-press" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
-                        <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)}</button>
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td>${student?.class_name || '-'}</td>
+                        <td><b>${att.type === 'in' ? 'Masuk' : 'Pulang'}</b></td>
+                        <td class="tabular-nums">${new Date(att.server_time).toLocaleTimeString('id-ID')} WIB</td>
+                        <td>${GeoService.formatDistance(att.distance_m)}</td>
+                        <td>${AdminView.getStatusBadgeHtml(att.status)}</td>
+                        <td style="display: flex; gap: 6px;">
+                          <button class="btn btn-sm btn-outline scale-press" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
+                          <button class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)}</button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
         </div>
       </div>
     `;
@@ -299,12 +307,12 @@ class AdminView {
 
     return `
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
-          <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Rekap & Log Absensi</h1>
-            <p style="font-size: 0.88rem; color: var(--text-secondary);">Daftar seluruh kehadiran siswa (semua wali kelas dapat memantau seluruh kelas, PRD Bagian 3)</p>
+        <div class="admin-page-header">
+          <div class="admin-header-title">
+            <h1>Rekap & Log Absensi</h1>
+            <p>Daftar seluruh kehadiran siswa (semua wali kelas dapat memantau seluruh kelas, PRD Bagian 3)</p>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <div class="admin-header-actions">
             <button class="btn btn-outline scale-press" onclick="AdminView.openPrintReportModal()">
               ${Icons.fileText(16)} Cetak Rekap / PDF
             </button>
@@ -317,78 +325,89 @@ class AdminView {
           </div>
         </div>
 
-        <!-- Filter Bar -->
-        <div class="card" style="padding: 14px 18px;">
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-            <input type="search" class="form-input" style="max-width: 240px;" placeholder="Cari nama atau NIS..." value="${this.searchQuery}" enterkeyhint="search" autocapitalize="none" autocorrect="off" oninput="AdminView.searchQuery = this.value; AdminView.setTab('rekap');" />
+        <!-- Responsive Filter Bar (PRD Bagian 3) -->
+        <div class="card admin-filter-card">
+          <div class="admin-filter-bar">
+            <div class="admin-filter-search-wrap">
+              <input type="search" class="form-input" placeholder="Cari nama atau NIS..." value="${this.searchQuery}" enterkeyhint="search" autocapitalize="none" autocorrect="off" oninput="AdminView.searchQuery = this.value; AdminView.setTab('rekap');" />
+            </div>
             
-            <select class="form-select" style="max-width: 170px;" onchange="AdminView.currentFilterClass = this.value; AdminView.setTab('rekap');">
-              <option value="all" ${this.currentFilterClass === 'all' ? 'selected' : ''}>Semua Kelas</option>
-              ${availableClasses.map(c => `
-                <option value="${c}" ${this.currentFilterClass === c ? 'selected' : ''}>${c}</option>
-              `).join('')}
-            </select>
+            <div class="admin-filter-selects">
+              <select class="form-select" onchange="AdminView.currentFilterClass = this.value; AdminView.setTab('rekap');">
+                <option value="all" ${this.currentFilterClass === 'all' ? 'selected' : ''}>Semua Kelas</option>
+                ${availableClasses.map(c => `
+                  <option value="${c}" ${this.currentFilterClass === c ? 'selected' : ''}>${c}</option>
+                `).join('')}
+              </select>
 
-            <select class="form-select" style="max-width: 170px;" onchange="AdminView.currentFilterDate = this.value; AdminView.setTab('rekap');">
-              <option value="all" ${this.currentFilterDate === 'all' ? 'selected' : ''}>Semua Tanggal</option>
-              <option value="today" ${this.currentFilterDate === 'today' ? 'selected' : ''}>Hari Ini</option>
-              <option value="this_month" ${this.currentFilterDate === 'this_month' ? 'selected' : ''}>Bulan Ini</option>
-            </select>
+              <select class="form-select" onchange="AdminView.currentFilterDate = this.value; AdminView.setTab('rekap');">
+                <option value="all" ${this.currentFilterDate === 'all' ? 'selected' : ''}>Semua Tanggal</option>
+                <option value="today" ${this.currentFilterDate === 'today' ? 'selected' : ''}>Hari Ini</option>
+                <option value="this_month" ${this.currentFilterDate === 'this_month' ? 'selected' : ''}>Bulan Ini</option>
+              </select>
 
-            <select class="form-select" style="max-width: 170px;" onchange="AdminView.currentFilterStatus = this.value; AdminView.setTab('rekap');">
-              <option value="all" ${this.currentFilterStatus === 'all' ? 'selected' : ''}>Semua Status</option>
-              <option value="on_time" ${this.currentFilterStatus === 'on_time' ? 'selected' : ''}>Tepat Waktu</option>
-              <option value="late" ${this.currentFilterStatus === 'late' ? 'selected' : ''}>Terlambat</option>
-              <option value="outside_area" ${this.currentFilterStatus === 'outside_area' ? 'selected' : ''}>Di Luar Area</option>
-              <option value="approved" ${this.currentFilterStatus === 'approved' ? 'selected' : ''}>Disetujui</option>
-            </select>
+              <select class="form-select" onchange="AdminView.currentFilterStatus = this.value; AdminView.setTab('rekap');">
+                <option value="all" ${this.currentFilterStatus === 'all' ? 'selected' : ''}>Semua Status</option>
+                <option value="on_time" ${this.currentFilterStatus === 'on_time' ? 'selected' : ''}>Tepat Waktu</option>
+                <option value="late" ${this.currentFilterStatus === 'late' ? 'selected' : ''}>Terlambat</option>
+                <option value="outside_area" ${this.currentFilterStatus === 'outside_area' ? 'selected' : ''}>Di Luar Area</option>
+                <option value="approved" ${this.currentFilterStatus === 'approved' ? 'selected' : ''}>Disetujui</option>
+              </select>
+            </div>
 
-            <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: auto;">
+            <div class="admin-filter-count">
               Ditemukan: <b>${list.length}</b> data
-            </span>
+            </div>
           </div>
         </div>
 
-        <!-- Table -->
-        <div class="table-wrapper" style="margin-top: 16px;">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Selfie</th>
-                <th>Nama Siswa</th>
-                <th>NIS</th>
-                <th>Kelas</th>
-                <th>Tipe</th>
-                <th>Tanggal & Waktu Server</th>
-                <th>Jarak</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${list.length === 0 ? '<tr><td colspan="9" style="text-align: center; padding: 28px; color: var(--text-muted);">Tidak ada data yang sesuai dengan filter.</td></tr>' : ''}
-              ${list.map(att => {
-                const s = DB.getProfileById(att.user_id);
-                return `
-                  <tr>
-                    <td><img src="${att.selfie_path}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;" /></td>
-                    <td><b>${s?.full_name || 'Siswa'}</b></td>
-                    <td>${s?.nis || '-'}</td>
-                    <td>${s?.class_name || '-'}</td>
-                    <td><b>${att.type === 'in' ? 'Masuk' : 'Pulang'}</b></td>
-                    <td class="tabular-nums">${new Date(att.server_time).toLocaleDateString('id-ID')} ${new Date(att.server_time).toLocaleTimeString('id-ID')}</td>
-                    <td>${GeoService.formatDistance(att.distance_m)}</td>
-                    <td>${AdminView.getStatusBadgeHtml(att.status)}</td>
-                    <td style="display: flex; gap: 6px;">
-                      <button class="btn btn-sm btn-outline scale-press" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
-                      <button class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)} Hapus</button>
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
+        <!-- Table or Clean Empty State -->
+        ${list.length === 0 ? `
+          <div class="empty-state-box" style="margin-top: 16px;">
+            <div class="empty-state-icon">${Icons.fileText(28)}</div>
+            <div class="empty-state-title">Tidak Ada Catatan Absensi</div>
+            <div class="empty-state-desc">Tidak ditemukan data absensi yang sesuai dengan kriteria filter yang Anda pilih.</div>
+          </div>
+        ` : `
+          <div class="table-wrapper" style="margin-top: 16px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Selfie</th>
+                  <th>Nama Siswa</th>
+                  <th>NIS</th>
+                  <th>Kelas</th>
+                  <th>Tipe</th>
+                  <th>Tanggal & Waktu Server</th>
+                  <th>Jarak</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${list.map(att => {
+                  const s = DB.getProfileById(att.user_id);
+                  return `
+                    <tr>
+                      <td><img src="${att.selfie_path}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;" /></td>
+                      <td><b>${s?.full_name || 'Siswa'}</b></td>
+                      <td>${s?.nis || '-'}</td>
+                      <td>${s?.class_name || '-'}</td>
+                      <td><b>${att.type === 'in' ? 'Masuk' : 'Pulang'}</b></td>
+                      <td class="tabular-nums">${new Date(att.server_time).toLocaleDateString('id-ID')} ${new Date(att.server_time).toLocaleTimeString('id-ID')}</td>
+                      <td>${GeoService.formatDistance(att.distance_m)}</td>
+                      <td>${AdminView.getStatusBadgeHtml(att.status)}</td>
+                      <td style="display: flex; gap: 6px;">
+                        <button class="btn btn-sm btn-outline scale-press" onclick="AdminView.showDetailModal('${att.id}')">Detail</button>
+                        <button class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.confirmDeleteAttendance('${att.id}')" title="Hapus Catatan">${Icons.trash(14)} Hapus</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
       </div>
     `;
   }
@@ -400,64 +419,75 @@ class AdminView {
 
     return `
       <div>
-        <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Antrean Tinjauan Admin</h1>
-        <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 24px;">Keputusan atas absensi di luar radius sekolah dan persetujuan izin/sakit.</p>
+        <div class="admin-page-header">
+          <div class="admin-header-title">
+            <h1>Antrean Tinjauan Admin</h1>
+            <p>Keputusan atas absensi di luar radius sekolah dan persetujuan permohonan izin/sakit siswa.</p>
+          </div>
+        </div>
 
         <!-- Section 1: Absensi Di Luar Radius Sekolah (PRD FR-8) -->
         <div class="card" style="margin-bottom: 24px;">
           <div class="card-header">
             <span class="card-title">Absensi di Luar Radius Sekolah (${outsideAreaList.length})</span>
           </div>
-          <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Selfie</th>
-                  <th>Siswa & Kelas</th>
-                  <th>Jam Server</th>
-                  <th>Jarak GPS</th>
-                  <th>Alasan yang Ditulis Siswa</th>
-                  <th>Aksi Verifikasi</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${outsideAreaList.length === 0 ? '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Tidak ada absensi luar radius yang menunggu tinjauan.</td></tr>' : ''}
-                ${outsideAreaList.map(a => {
-                  const s = DB.getProfileById(a.user_id);
-                  return `
-                    <tr>
-                      <td>
-                        <img src="${a.selfie_path}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--border);" onclick="AdminView.showDetailModal('${a.id}')" title="Klik untuk lihat detail" />
-                      </td>
-                      <td>
-                        <div style="cursor: pointer;" onclick="AdminView.showDetailModal('${a.id}')">
-                          <b>${s?.full_name || 'Siswa'}</b>
-                          <div style="font-size: 0.78rem; color: var(--text-muted);">${s?.class_name || '-'} • NIS: ${s?.nis || '-'}</div>
-                        </div>
-                      </td>
-                      <td class="tabular-nums">${new Date(a.server_time).toLocaleTimeString('id-ID')} WIB</td>
-                      <td>
-                        <b>${GeoService.formatDistance(a.distance_m)}</b>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">Akurasi: ±${a.accuracy_m}m</div>
-                      </td>
-                      <td style="max-width: 250px;">
-                        <div style="background: #FFFBEB; padding: 6px 10px; border-radius: 6px; border: 1px solid #FDE68A; font-size: 0.82rem; color: #78350F; font-style: italic;">
-                          "${a.outside_reason || 'Tidak ada alasan'}"
-                        </div>
-                      </td>
-                      <td>
-                        <div style="display: flex; gap: 6px;">
-                          <button class="btn btn-sm btn-primary scale-press" onclick="AdminView.showDetailModal('${a.id}')">Tinjau</button>
-                          <button class="btn btn-sm btn-success scale-press" onclick="AdminView.reviewAttendance('${a.id}', 'approved')">Terima</button>
-                          <button class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.reviewAttendance('${a.id}', 'rejected')">Tolak</button>
-                        </div>
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
+          ${outsideAreaList.length === 0 ? `
+            <div class="empty-state-box">
+              <div class="empty-state-icon" style="color: var(--success);">${Icons.checkCircle(28)}</div>
+              <div class="empty-state-title">Semua Absensi Tertib Sesuai Lokasi</div>
+              <div class="empty-state-desc">Tidak ada catatan kehadiran di luar radius gerbang sekolah yang menunggu tinjauan admin.</div>
+            </div>
+          ` : `
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Selfie</th>
+                    <th>Siswa & Kelas</th>
+                    <th>Jam Server</th>
+                    <th>Jarak GPS</th>
+                    <th>Alasan yang Ditulis Siswa</th>
+                    <th>Aksi Verifikasi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${outsideAreaList.map(a => {
+                    const s = DB.getProfileById(a.user_id);
+                    return `
+                      <tr>
+                        <td>
+                          <img src="${a.selfie_path}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--border);" onclick="AdminView.showDetailModal('${a.id}')" title="Klik untuk lihat detail" />
+                        </td>
+                        <td>
+                          <div style="cursor: pointer;" onclick="AdminView.showDetailModal('${a.id}')">
+                            <b>${s?.full_name || 'Siswa'}</b>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">${s?.class_name || '-'} • NIS: ${s?.nis || '-'}</div>
+                          </div>
+                        </td>
+                        <td class="tabular-nums">${new Date(a.server_time).toLocaleTimeString('id-ID')} WIB</td>
+                        <td>
+                          <b>${GeoService.formatDistance(a.distance_m)}</b>
+                          <div style="font-size: 0.72rem; color: var(--text-muted);">Akurasi: ±${a.accuracy_m}m</div>
+                        </td>
+                        <td style="max-width: 250px;">
+                          <div style="background: #FFFBEB; padding: 6px 10px; border-radius: 6px; border: 1px solid #FDE68A; font-size: 0.82rem; color: #78350F; font-style: italic;">
+                            "${a.outside_reason || 'Tidak ada alasan'}"
+                          </div>
+                        </td>
+                        <td>
+                          <div style="display: flex; gap: 6px;">
+                            <button class="btn btn-sm btn-primary scale-press" onclick="AdminView.showDetailModal('${a.id}')">Tinjau</button>
+                            <button class="btn btn-sm btn-success scale-press" onclick="AdminView.reviewAttendance('${a.id}', 'approved')">Terima</button>
+                            <button class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="AdminView.reviewAttendance('${a.id}', 'rejected')">Tolak</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
         </div>
 
         <!-- Section 2: Pengajuan Izin & Sakit (PRD FR-32) -->
@@ -465,47 +495,54 @@ class AdminView {
           <div class="card-header">
             <span class="card-title">Pengajuan Izin & Sakit (${pendingLeaveList.length})</span>
           </div>
-          <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Siswa</th>
-                  <th>Jenis</th>
-                  <th>Rentang Tanggal</th>
-                  <th>Keterangan</th>
-                  <th>Lampiran</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${pendingLeaveList.length === 0 ? '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">Tidak ada permohonan izin/sakit yang menunggu.</td></tr>' : ''}
-                ${pendingLeaveList.map(l => {
-                  const s = DB.getProfileById(l.user_id);
-                  return `
-                    <tr>
-                      <td><b>${s?.full_name}</b><br><span style="font-size: 0.78rem; color: var(--text-muted);">${s?.class_name}</span></td>
-                      <td><span class="badge ${l.type === 'sakit' ? 'badge-danger' : 'badge-info'}">${l.type.toUpperCase()}</span></td>
-                      <td>${l.date_from} s/d ${l.date_to}</td>
-                      <td style="max-width: 200px;">"${l.note}"</td>
-                      <td>
-                        ${l.attachment_path ? `
-                          <button type="button" class="btn btn-sm btn-outline scale-press" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;" onclick="StudentView.openAttachmentLightbox('${l.attachment_path.replace(/'/g, "\\'")}', 'Surat Keterangan - ${(s?.full_name || 'Siswa').replace(/'/g, "\\'")}')">
-                            ${Icons.eye(14)} Lihat Surat
-                          </button>
-                        ` : '<span style="color: var(--text-muted); font-size: 0.8rem;">-</span>'}
-                      </td>
-                      <td>
-                        <div style="display: flex; gap: 6px;">
-                          <button class="btn btn-sm btn-success scale-press" onclick="AdminView.reviewLeave('${l.id}', 'approved')">Setujui</button>
-                          <button class="btn btn-sm btn-danger scale-press" onclick="AdminView.reviewLeave('${l.id}', 'rejected')">Tolak</button>
-                        </div>
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
+          ${pendingLeaveList.length === 0 ? `
+            <div class="empty-state-box">
+              <div class="empty-state-icon" style="color: var(--success);">${Icons.checkCircle(28)}</div>
+              <div class="empty-state-title">Antrean Permohonan Izin Selesai</div>
+              <div class="empty-state-desc">Semua pengajuan surat izin dan sakit siswa telah diverifikasi atau belum ada pengajuan baru.</div>
+            </div>
+          ` : `
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Siswa</th>
+                    <th>Jenis</th>
+                    <th>Rentang Tanggal</th>
+                    <th>Keterangan</th>
+                    <th>Lampiran</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${pendingLeaveList.map(l => {
+                    const s = DB.getProfileById(l.user_id);
+                    return `
+                      <tr>
+                        <td><b>${s?.full_name}</b><br><span style="font-size: 0.78rem; color: var(--text-muted);">${s?.class_name}</span></td>
+                        <td><span class="badge ${l.type === 'sakit' ? 'badge-danger' : 'badge-info'}">${l.type.toUpperCase()}</span></td>
+                        <td>${l.date_from} s/d ${l.date_to}</td>
+                        <td style="max-width: 200px;">"${l.note}"</td>
+                        <td>
+                          ${l.attachment_path ? `
+                            <button type="button" class="btn btn-sm btn-outline scale-press" style="font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;" onclick="StudentView.openAttachmentLightbox('${l.attachment_path.replace(/'/g, "\\'")}', 'Surat Keterangan - ${(s?.full_name || 'Siswa').replace(/'/g, "\\'")}')">
+                              ${Icons.eye(14)} Lihat Surat
+                            </button>
+                          ` : '<span style="color: var(--text-muted); font-size: 0.8rem;">-</span>'}
+                        </td>
+                        <td>
+                          <div style="display: flex; gap: 6px;">
+                            <button class="btn btn-sm btn-success scale-press" onclick="AdminView.reviewLeave('${l.id}', 'approved')">Setujui</button>
+                            <button class="btn btn-sm btn-danger scale-press" onclick="AdminView.reviewLeave('${l.id}', 'rejected')">Tolak</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
         </div>
       </div>
     `;
@@ -517,41 +554,49 @@ class AdminView {
 
     return `
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Kelola Siswa & Kelas</h1>
-            <p style="font-size: 0.88rem; color: var(--text-secondary);">Akun siswa dibuat oleh admin sekolah (Mendukung impor massal CSV, PRD FR-1 & FR-3)</p>
+        <div class="admin-page-header">
+          <div class="admin-header-title">
+            <h1>Kelola Siswa & Kelas</h1>
+            <p>Akun siswa dibuat oleh admin sekolah (Mendukung impor massal CSV, PRD FR-1 & FR-3)</p>
           </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-outline" onclick="AdminView.openImportCsvModal()">${Icons.upload(16)} Impor CSV</button>
-            <button class="btn btn-primary" onclick="AdminView.openAddStudentModal()">+ Tambah Siswa</button>
+          <div class="admin-header-actions">
+            <button class="btn btn-outline scale-press" onclick="AdminView.openImportCsvModal()">${Icons.upload(16)} Impor CSV</button>
+            <button class="btn btn-primary scale-press" onclick="AdminView.openAddStudentModal()">+ Tambah Siswa</button>
           </div>
         </div>
 
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>NIS</th>
-                <th>Nama Lengkap</th>
-                <th>Kelas</th>
-                <th>Status Akun</th>
-                <th>Tanggal Terdaftar</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${students.map(s => `
+        ${students.length === 0 ? `
+          <div class="empty-state-box">
+            <div class="empty-state-icon">${Icons.users(28)}</div>
+            <div class="empty-state-title">Belum Ada Siswa Terdaftar</div>
+            <div class="empty-state-desc">Gunakan tombol Impor CSV atau Tambah Siswa untuk mendaftarkan akun siswa baru.</div>
+          </div>
+        ` : `
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
                 <tr>
-                  <td><b>${s.nis}</b></td>
-                  <td>${s.full_name}</td>
-                  <td><span class="badge badge-info">${s.class_name}</span></td>
-                  <td><span class="badge badge-${s.active ? 'success' : 'neutral'}">${s.active ? 'Aktif' : 'Nonaktif'}</span></td>
-                  <td class="tabular-nums">${new Date(s.created_at).toLocaleDateString('id-ID')}</td>
+                  <th>NIS</th>
+                  <th>Nama Lengkap</th>
+                  <th>Kelas</th>
+                  <th>Status Akun</th>
+                  <th>Tanggal Terdaftar</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                ${students.map(s => `
+                  <tr>
+                    <td><b>${s.nis}</b></td>
+                    <td>${s.full_name}</td>
+                    <td><span class="badge badge-info">${s.class_name}</span></td>
+                    <td><span class="badge badge-${s.active ? 'success' : 'neutral'}">${s.active ? 'Aktif' : 'Nonaktif'}</span></td>
+                    <td class="tabular-nums">${new Date(s.created_at).toLocaleDateString('id-ID')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
       </div>
     `;
   }
@@ -562,72 +607,80 @@ class AdminView {
 
     return `
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
-          <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Pengelolaan Orang Tua/Wali & Telegram</h1>
-            <p style="font-size: 0.88rem; color: var(--text-secondary);">Kode penautan unik 6-karakter berlaku 24 jam (PRD FR-45). Verifikasi sebelum pemutusan tautan (FR-44).</p>
+        <div class="admin-page-header">
+          <div class="admin-header-title">
+            <h1>Pengelolaan Orang Tua/Wali & Telegram</h1>
+            <p>Kode penautan unik 6-karakter berlaku 24 jam (PRD FR-45). Verifikasi sebelum pemutusan tautan (FR-44).</p>
           </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-primary" onclick="AdminView.syncTelegramBot()">
+          <div class="admin-header-actions">
+            <button class="btn btn-primary scale-press" onclick="AdminView.syncTelegramBot()">
               Sinkronkan Tautan Telegram Baru
             </button>
           </div>
         </div>
 
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Nama Wali</th>
-                <th>Siswa Terkait</th>
-                <th>Kontak</th>
-                <th>Status Telegram</th>
-                <th>Chat ID Telegram</th>
-                <th>Persetujuan UU PDP</th>
-                <th>Aksi Kode & Tautan</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${guardians.map(g => {
-                const student = DB.getProfileById(g.student_id);
-                const isLinked = !!g.telegram_chat_id;
-                const consents = DB.getConsents(g.student_id);
-                const consentLabel = consents.length >= 2 ? `Lengkap (${consents.length}/3)` : consents.length > 0 ? `Sebagian (${consents.length}/3)` : 'Belum Ada';
-                const consentBadge = consents.length >= 2 ? 'badge-success' : consents.length > 0 ? 'badge-warning' : 'badge-neutral';
-                return `
-                  <tr>
-                    <td><b>${g.guardian_name}</b></td>
-                    <td>${student?.full_name} (${student?.class_name})</td>
-                    <td>${g.guardian_contact || '-'}</td>
-                    <td>
-                      <span class="badge ${isLinked ? 'badge-success' : 'badge-neutral'}">
-                        ${isLinked ? 'Tertaut (' + g.telegram_username + ')' : 'Belum Ditautkan'}
-                      </span>
-                    </td>
-                    <td class="tabular-nums">${g.telegram_chat_id || '-'}</td>
-                    <td>
-                      <button type="button" class="badge ${consentBadge} scale-press" style="cursor: pointer; border: none;" onclick="ConsentView.openModal('${g.student_id}')" title="Klik untuk lihat / kelola persetujuan digital">
-                        ${consentLabel}
-                      </button>
-                    </td>
-                    <td>
-                      <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-sm btn-primary scale-press" onclick="AdminView.issueTelegramCode('${g.id}')">
-                          Terbitkan Kode
+        ${guardians.length === 0 ? `
+          <div class="empty-state-box">
+            <div class="empty-state-icon">${Icons.user(28)}</div>
+            <div class="empty-state-title">Belum Ada Data Orang Tua/Wali</div>
+            <div class="empty-state-desc">Data orang tua/wali akan otomatis terdaftar saat akun siswa dibuat.</div>
+          </div>
+        ` : `
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama Wali</th>
+                  <th>Siswa Terkait</th>
+                  <th>Kontak</th>
+                  <th>Status Telegram</th>
+                  <th>Chat ID Telegram</th>
+                  <th>Persetujuan UU PDP</th>
+                  <th>Aksi Kode & Tautan</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${guardians.map(g => {
+                  const student = DB.getProfileById(g.student_id);
+                  const isLinked = !!g.telegram_chat_id;
+                  const consents = DB.getConsents(g.student_id);
+                  const consentLabel = consents.length >= 2 ? `Lengkap (${consents.length}/3)` : consents.length > 0 ? `Sebagian (${consents.length}/3)` : 'Belum Ada';
+                  const consentBadge = consents.length >= 2 ? 'badge-success' : consents.length > 0 ? 'badge-warning' : 'badge-neutral';
+                  return `
+                    <tr>
+                      <td><b>${g.guardian_name}</b></td>
+                      <td>${student?.full_name} (${student?.class_name})</td>
+                      <td>${g.guardian_contact || '-'}</td>
+                      <td>
+                        <span class="badge ${isLinked ? 'badge-success' : 'badge-neutral'}">
+                          ${isLinked ? 'Tertaut (' + g.telegram_username + ')' : 'Belum Ditautkan'}
+                        </span>
+                      </td>
+                      <td class="tabular-nums">${g.telegram_chat_id || '-'}</td>
+                      <td>
+                        <button type="button" class="badge ${consentBadge} scale-press" style="cursor: pointer; border: none;" onclick="ConsentView.openModal('${g.student_id}')" title="Klik untuk lihat / kelola persetujuan digital">
+                          ${consentLabel}
                         </button>
-                        ${isLinked ? `
-                          <button class="btn btn-sm btn-danger scale-press" onclick="AdminView.promptUnlinkTelegram('${g.id}')">
-                            Putus Tautan
+                      </td>
+                      <td>
+                        <div style="display: flex; gap: 8px;">
+                          <button class="btn btn-sm btn-primary scale-press" onclick="AdminView.issueTelegramCode('${g.id}')">
+                            Terbitkan Kode
                           </button>
-                        ` : ''}
-                      </div>
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
+                          ${isLinked ? `
+                            <button class="btn btn-sm btn-danger scale-press" onclick="AdminView.promptUnlinkTelegram('${g.id}')">
+                              Putus Tautan
+                            </button>
+                          ` : ''}
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
       </div>
     `;
   }
@@ -640,19 +693,19 @@ class AdminView {
 
     return `
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
-          <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Antrean & Log Notifikasi Telegram</h1>
-            <p style="font-size: 0.88rem; color: var(--text-secondary);">Worker memproses antrean terpisah (Maks 3 kali percobaan ulang untuk gangguan sementara, PRD FR-39)</p>
+        <div class="admin-page-header">
+          <div class="admin-header-title">
+            <h1>Antrean & Log Notifikasi Telegram</h1>
+            <p>Worker memproses antrean terpisah (Maks 3 kali percobaan ulang untuk gangguan sementara, PRD FR-39)</p>
           </div>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn btn-secondary" onclick="AdminView.syncTelegramBot()">
+          <div class="admin-header-actions">
+            <button class="btn btn-secondary scale-press" onclick="AdminView.syncTelegramBot()">
               Sinkronkan Pesan Masuk
             </button>
-            <button class="btn btn-secondary" onclick="AdminView.openTestTelegramModal()">
+            <button class="btn btn-secondary scale-press" onclick="AdminView.openTestTelegramModal()">
               Uji Kirim Pesan
             </button>
-            <button class="btn btn-primary" onclick="AdminView.triggerWorker()">
+            <button class="btn btn-primary scale-press" onclick="AdminView.triggerWorker()">
               Proses Antrean (${queuedCount})
             </button>
           </div>
@@ -666,41 +719,48 @@ class AdminView {
             <div style="font-size: 0.8rem; color: var(--success); font-weight: 600;">Terhubung ke Telegram Bot API Resmi</div>
           </div>
           <div style="display: flex; gap: 8px;">
-            <a href="https://t.me/${botUser}" target="_blank" class="btn btn-sm btn-outline">
+            <a href="https://t.me/${botUser}" target="_blank" class="btn btn-sm btn-outline scale-press">
               Buka @${botUser} di Telegram
             </a>
           </div>
         </div>
 
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Waktu Dibuat</th>
-                <th>Siswa</th>
-                <th>Template</th>
-                <th>Penerima (Chat ID)</th>
-                <th>Status Antrean</th>
-                <th>Percobaan</th>
-                <th>ID Pesan Provider</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${queue.length === 0 ? '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">Belum ada riwayat antrean notifikasi.</td></tr>' : ''}
-              ${queue.map(item => `
+        ${queue.length === 0 ? `
+          <div class="empty-state-box">
+            <div class="empty-state-icon">${Icons.send(28)}</div>
+            <div class="empty-state-title">Antrean Notifikasi Kosong</div>
+            <div class="empty-state-desc">Semua pesan notifikasi kehadiran telah berhasil dikirimkan ke Telegram wali siswa.</div>
+          </div>
+        ` : `
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
                 <tr>
-                  <td class="tabular-nums">${new Date(item.created_at).toLocaleTimeString('id-ID')}</td>
-                  <td><b>${item.payload?.student_name || '-'}</b></td>
-                  <td><span class="badge badge-info">${item.template}</span></td>
-                  <td class="tabular-nums">${item.to_chat_id}</td>
-                  <td><span class="badge badge-${item.status}">${item.status}</span></td>
-                  <td>${item.attempts}x</td>
-                  <td style="font-size: 0.78rem; font-family: monospace;">${item.provider_message_id || (item.error ? `<span style="color: var(--danger);">${item.error}</span>` : '-')}</td>
+                  <th>Waktu Dibuat</th>
+                  <th>Siswa</th>
+                  <th>Template</th>
+                  <th>Penerima (Chat ID)</th>
+                  <th>Status Antrean</th>
+                  <th>Percobaan</th>
+                  <th>ID Pesan Provider</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                ${queue.map(item => `
+                  <tr>
+                    <td class="tabular-nums">${new Date(item.created_at).toLocaleTimeString('id-ID')}</td>
+                    <td><b>${item.payload?.student_name || '-'}</b></td>
+                    <td><span class="badge badge-info">${item.template}</span></td>
+                    <td class="tabular-nums">${item.to_chat_id}</td>
+                    <td><span class="badge badge-${item.status}">${item.status}</span></td>
+                    <td>${item.attempts}x</td>
+                    <td style="font-size: 0.78rem; font-family: monospace;">${item.provider_message_id || (item.error ? `<span style="color: var(--danger);">${item.error}</span>` : '-')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
       </div>
     `;
   }
@@ -711,10 +771,14 @@ class AdminView {
 
     return `
       <div>
-        <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Pengaturan Lokasi & Jam Sekolah</h1>
-        <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 24px;">Kelola titik koordinat sekolah, radius toleransi GPS, dan jam masuk/pulang.</p>
+        <div class="admin-page-header">
+          <div class="admin-header-title">
+            <h1>Pengaturan Lokasi & Jam Sekolah</h1>
+            <p>Kelola titik koordinat sekolah, radius toleransi GPS, dan jam masuk/pulang.</p>
+          </div>
+        </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
+        <div class="admin-settings-grid">
           <!-- Form Settings -->
           <div class="card">
             <div class="card-title">Parameter Kehadiran & Geofencing</div>
@@ -756,7 +820,7 @@ class AdminView {
               <span class="form-help">Default 100m (PRD FR-8). Di luar radius ini, siswa wajib menyertakan alasan sah untuk ditinjau admin.</span>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div class="site-time-grid">
               <div class="form-group">
                 <label class="form-label form-label-required">Jam Masuk</label>
                 <input type="time" id="siteTimeIn" class="form-input" value="${site.time_in}" />

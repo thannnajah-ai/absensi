@@ -227,12 +227,18 @@ class StudentView {
       <div class="card">
         <div class="card-header">
           <span class="card-title">Pengajuan Izin & Sakit</span>
-          <button class="btn btn-sm btn-primary" onclick="StudentView.openLeaveModal()">+ Ajukan Izin</button>
+          <button class="btn btn-sm btn-primary scale-press" onclick="StudentView.openLeaveModal()">+ Ajukan Izin</button>
         </div>
         <p class="card-desc">Siswa yang mengajukan permohonan resmi tidak dihitung mangkir/alpa.</p>
 
         <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-          ${list.length === 0 ? '<div style="text-align: center; padding: 24px; color: var(--text-muted);">Belum ada pengajuan izin atau sakit.</div>' : ''}
+          ${list.length === 0 ? `
+            <div class="empty-state-box">
+              <div class="empty-state-icon" style="color: var(--primary-600);">${Icons.fileText(28)}</div>
+              <div class="empty-state-title">Belum Ada Pengajuan</div>
+              <div class="empty-state-desc">Belum ada permohonan izin atau sakit yang diajukan. Klik tombol "+ Ajukan Izin" jika Anda berhalangan hadir.</div>
+            </div>
+          ` : ''}
           ${list.map(l => `
             <div class="card" style="padding: 14px; background: var(--surface-alt);">
               <div style="display: flex; justify-content: space-between; align-items: baseline;">

@@ -150,6 +150,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .card-title {
@@ -1095,6 +1097,135 @@
 .metric-card-desc {
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+/* ==========================================================================
+   ADMIN RESPONSIVE LAYOUT & FILTER SYSTEM
+   ========================================================================== */
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.admin-header-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-header-title h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  line-height: 1.25;
+}
+
+.admin-header-title p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Admin Filter Bar */
+.admin-filter-card {
+  padding: 14px 18px !important;
+  margin-bottom: 16px;
+}
+
+.admin-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.admin-filter-search-wrap {
+  flex: 1 1 240px;
+  min-width: 180px;
+}
+
+.admin-filter-selects {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 2 1 auto;
+  flex-wrap: wrap;
+}
+
+.admin-filter-selects .form-select {
+  flex: 1 1 140px;
+  min-width: 130px;
+}
+
+.admin-filter-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Empty State Box (No horizontal scrollbars on 0 data) */
+.empty-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 20px;
+  background: var(--surface-alt);
+  border-radius: var(--radius-card);
+  border: 1px dashed var(--border);
+  margin: 4px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.empty-state-icon {
+  color: var(--primary-600);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.empty-state-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  max-width: 380px;
+  line-height: 1.45;
+}
+
+/* Admin Settings Grid */
+.admin-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 20px;
+}
+
+.site-time-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
 /* ==========================================================================
@@ -2947,17 +3078,110 @@
     gap: 10px;
   }
 
+  .metric-grid .metric-card:first-child {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, var(--surface) 0%, var(--primary-50) 100%);
+    border-color: var(--primary-200);
+  }
+
   .metric-card {
     padding: 12px;
     border-radius: 12px;
   }
 
-  .metric-card-val {
-    font-size: 1.35rem;
+  .metric-card-value {
+    font-size: 1.4rem;
   }
 
   .metric-card-title {
     font-size: 0.72rem;
+  }
+
+  /* Admin Page Header on Mobile */
+  .admin-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .admin-header-title h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .admin-header-title p {
+    font-size: 0.8rem !important;
+  }
+
+  .admin-header-actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .admin-header-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 8px 10px;
+    min-height: 38px;
+  }
+
+  /* Admin Filter Bar on Mobile */
+  .admin-filter-card {
+    padding: 12px 14px !important;
+  }
+
+  .admin-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .admin-filter-search-wrap {
+    width: 100%;
+    flex: none;
+  }
+
+  .admin-filter-search-wrap .form-input {
+    width: 100%;
+  }
+
+  .admin-filter-selects {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+    flex: none;
+  }
+
+  .admin-filter-selects .form-select:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .admin-filter-selects .form-select {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+
+  .admin-filter-count {
+    margin-left: 0;
+    text-align: right;
+    font-size: 0.78rem;
+    padding-top: 2px;
+  }
+
+  /* Time grid on mobile */
+  .site-time-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .site-time-grid .form-group:last-child {
+    grid-column: 1 / -1;
   }
 
   /* Data Tables Mobile Cell Padding */

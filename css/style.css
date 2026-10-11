@@ -221,24 +221,35 @@ a.btn,
 }
 
 .header-logout-btn {
-  display: inline-flex;
-  align-items: center;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: 0.76rem;
   font-weight: 600;
-  min-height: 30px;
-  color: var(--danger);
-  border: 1px solid var(--danger-border);
-  background: var(--surface);
+  min-height: 32px;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
+  background: #FEF2F2 !important;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--motion-fast) var(--ease-out);
+  flex-shrink: 0;
 }
 
 .header-logout-btn:hover {
-  background: var(--danger-bg);
-  border-color: var(--danger);
+  background: #FEE2E2 !important;
+  border-color: #F87171 !important;
+  color: #B91C1C !important;
+}
+
+.header-logout-btn svg {
+  stroke: #DC2626 !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex-shrink: 0;
+  display: block;
 }
 
 /* Mobile-Responsive Header (Solves 360px viewport cramming from screenshot) */
@@ -303,15 +314,16 @@ a.btn,
   }
 
   .header-logout-btn {
-    padding: 0;
-    width: 34px;
-    height: 34px;
-    min-height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    flex-shrink: 0;
+    padding: 0 !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    min-width: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    flex-shrink: 0 !important;
   }
 
   .header-logout-btn .logout-text {
@@ -320,6 +332,8 @@ a.btn,
 
   .header-logout-btn svg {
     margin: 0;
+    width: 18px !important;
+    height: 18px !important;
   }
 
   .role-switcher {
