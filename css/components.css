@@ -2645,4 +2645,259 @@
   }
 }
 
+/* ==========================================================================
+   MOBILE-RESPONSIVE ADAPTATIONS (360px - 600px Screen Refinements)
+   Fixes cramming on mobile devices (e.g. Samsung Galaxy A55 360x800)
+   ========================================================================== */
+
+@media (max-width: 600px) {
+  /* Modals & Dialogs on Mobile */
+  .modal-backdrop,
+  .lightbox-modal,
+  .report-sheet-modal {
+    padding: 10px;
+  }
+
+  .modal-content,
+  .lightbox-card,
+  .report-modal-content {
+    border-radius: 16px;
+    max-height: 94dvh;
+    width: 100%;
+  }
+
+  .modal-header,
+  .lightbox-header {
+    padding: 12px 16px;
+  }
+
+  .modal-title,
+  .lightbox-title {
+    font-size: 1rem;
+  }
+
+  .modal-body {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .modal-footer {
+    padding: 10px 16px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Official Report Document Responsive Layout */
+  .report-sheet {
+    padding: 16px 14px;
+  }
+
+  .report-kop {
+    gap: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+
+  .report-kop-logo {
+    width: 40px;
+    height: 40px;
+    font-size: 0.85rem;
+  }
+
+  .report-kop-sekolah {
+    font-size: 1rem;
+  }
+
+  .report-kop-alamat {
+    font-size: 0.68rem;
+  }
+
+  .report-main-title {
+    font-size: 0.92rem;
+  }
+
+  .report-meta-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .report-summary-boxes {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .report-stat-num {
+    font-size: 1.1rem;
+  }
+
+  .report-signature-block {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+    align-items: center;
+  }
+
+  .report-sign-col {
+    min-width: 100%;
+  }
+
+  .report-sign-space {
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Cards & Frames */
+  .card {
+    padding: 14px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+  }
+
+  .card-desc {
+    font-size: 0.8rem;
+  }
+
+  /* Attendance Hero & Clock Card */
+  .attendance-hero-card {
+    padding: 14px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .live-time-clock {
+    font-size: 2rem;
+    letter-spacing: -0.5px;
+  }
+
+  .live-date-text {
+    font-size: 0.8rem;
+  }
+
+  .attendance-buttons-grid {
+    gap: 10px;
+  }
+
+  .btn-hero-action {
+    padding: 14px 8px;
+    gap: 6px;
+    border-radius: 12px;
+  }
+
+  .hero-btn-title {
+    font-size: 0.95rem;
+  }
+
+  .hero-btn-sub {
+    font-size: 0.7rem;
+  }
+
+  .hero-btn-icon {
+    font-size: 1.5rem;
+  }
+
+  /* Status Boxes */
+  .status-today-box {
+    padding: 10px;
+    min-height: 80px;
+    gap: 4px;
+    border-radius: 12px;
+  }
+
+  .status-title {
+    font-size: 0.68rem;
+  }
+
+  .status-value {
+    font-size: 1rem;
+  }
+
+  .status-today-box .badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  /* Checkin Stepper in Camera Modal */
+  .checkin-stepper {
+    gap: 4px;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+
+  .checkin-step-pill {
+    padding: 3px 6px;
+    font-size: 0.7rem;
+    gap: 4px;
+  }
+
+  .checkin-step-pill .step-num {
+    width: 18px;
+    height: 18px;
+    font-size: 0.68rem;
+  }
+
+  .checkin-step-connector {
+    min-width: 6px;
+  }
+
+  /* Admin Dashboard Metrics on Mobile */
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .metric-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .metric-card-val {
+    font-size: 1.35rem;
+  }
+
+  .metric-card-title {
+    font-size: 0.72rem;
+  }
+
+  /* Data Tables Mobile Cell Padding */
+  .data-table th,
+  .data-table td {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* Bottom Nav Spacing */
+  .bottom-nav {
+    padding-top: 6px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-nav-item {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 365px) {
+  .live-time-clock {
+    font-size: 1.75rem;
+  }
+
+  .checkin-step-pill .step-text {
+    font-size: 0.65rem;
+  }
+
+  .status-value {
+    font-size: 0.92rem;
+  }
+}
+
 

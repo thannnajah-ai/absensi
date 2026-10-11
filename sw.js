@@ -1,4 +1,4 @@
-const CACHE_NAME = 'absensi-cache-v4';
+const CACHE_NAME = 'absensi-cache-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -41,11 +41,16 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only handle HTTP/HTTPS GET requests (ignore chrome-extension://, POST, etc.)
+  if (!event.request.url.startsWith('http') || event.request.method !== 'GET') {
+    return;
+  }
+
   // Network first with cache fallback
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);

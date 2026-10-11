@@ -70,14 +70,14 @@ class StudentView {
 
     return `
       <!-- Greeting Header -->
-      <div class="card cascade-item-1" style="padding: 16px;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 0.82rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Profil Siswa</div>
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary-900);">${student.full_name}</div>
-            <div style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">${student.class_name} • NIS: ${student.nis}</div>
+      <div class="card cascade-item-1" style="padding: 14px 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="min-width: 0;">
+            <div style="font-size: 0.78rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Profil Siswa</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${student.full_name}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">${student.class_name} • NIS: ${student.nis}</div>
           </div>
-          <div style="text-align: right;">
+          <div style="text-align: right; flex-shrink: 0;">
             <span class="badge badge-info">${site.name}</span>
           </div>
         </div>

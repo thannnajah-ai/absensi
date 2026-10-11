@@ -111,14 +111,14 @@ class App {
     // Jika Mode Produksi Aktif: Tampilkan identitas resmi dan tombol keluar (tanpa switcher demo)
     if (isProd) {
       roleContainer.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="header-user-badge-wrap">
           <span class="badge ${this.currentRole === 'student' ? 'badge-info' : 'badge-admin'}">
             ${this.currentRole === 'student' ? 'Siswa' : 'Admin'}
           </span>
-          <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <span class="header-user-name" title="${this.currentUser.full_name}">
             ${this.currentUser.full_name}
           </span>
-          <button class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 0.75rem; min-height: 26px; color: var(--danger); border-color: var(--danger);" onclick="App.logout()">
+          <button class="btn btn-sm btn-outline header-logout-btn" onclick="App.logout()" title="Keluar dari akun">
             Keluar
           </button>
         </div>
@@ -128,29 +128,31 @@ class App {
 
     // Mode Pengujian / Demo: Sediakan switcher cepat untuk mempermudah evaluasi
     roleContainer.innerHTML = `
-      <div class="role-switcher">
-        <button class="role-btn ${this.currentRole === 'student' ? 'active' : ''}" onclick="App.switchRole('student')">
-          Siswa
-        </button>
-        <button class="role-btn ${this.currentRole === 'admin' ? 'active' : ''}" onclick="App.switchRole('admin')">
-          Admin
+      <div class="header-user-badge-wrap">
+        <div class="role-switcher">
+          <button class="role-btn ${this.currentRole === 'student' ? 'active' : ''}" onclick="App.switchRole('student')">
+            Siswa
+          </button>
+          <button class="role-btn ${this.currentRole === 'admin' ? 'active' : ''}" onclick="App.switchRole('admin')">
+            Admin
+          </button>
+        </div>
+
+        <select class="test-select" id="userSwitcherSelect" onchange="App.switchUser(this.value)">
+          <optgroup label="Akun Siswa">
+            <option value="usr-1" ${this.currentUserId === 'usr-1' ? 'selected' : ''}>Budi (XII-IPA-1)</option>
+            <option value="usr-2" ${this.currentUserId === 'usr-2' ? 'selected' : ''}>Siti (XII-IPA-1)</option>
+            <option value="usr-3" ${this.currentUserId === 'usr-3' ? 'selected' : ''}>Ahmad (XII-IPS-2)</option>
+          </optgroup>
+          <optgroup label="Akun Admin">
+            <option value="adm-1" ${this.currentUserId === 'adm-1' ? 'selected' : ''}>Admin Hendra</option>
+          </optgroup>
+        </select>
+
+        <button class="btn btn-sm btn-outline header-logout-btn" onclick="App.logout()" title="Keluar ke Layar Login">
+          Keluar
         </button>
       </div>
-
-      <select class="test-select" id="userSwitcherSelect" onchange="App.switchUser(this.value)" style="margin-left: 6px;">
-        <optgroup label="Akun Siswa">
-          <option value="usr-1" ${this.currentUserId === 'usr-1' ? 'selected' : ''}>Siswa: Budi Santoso (XII-IPA-1)</option>
-          <option value="usr-2" ${this.currentUserId === 'usr-2' ? 'selected' : ''}>Siswa: Siti Rahma (XII-IPA-1)</option>
-          <option value="usr-3" ${this.currentUserId === 'usr-3' ? 'selected' : ''}>Siswa: Ahmad Fauzi (XII-IPS-2)</option>
-        </optgroup>
-        <optgroup label="Akun Admin">
-          <option value="adm-1" ${this.currentUserId === 'adm-1' ? 'selected' : ''}>Admin: Hendra Wijaya, S.Pd</option>
-        </optgroup>
-      </select>
-
-      <button class="btn btn-sm btn-outline" style="margin-left: 6px; padding: 2px 8px; font-size: 0.72rem; min-height: 24px; color: var(--danger); border-color: var(--danger);" onclick="App.logout()" title="Keluar ke Layar Login">
-        Keluar
-      </button>
     `;
   }
 

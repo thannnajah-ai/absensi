@@ -95,17 +95,17 @@ class ConsentView {
           </div>
         </div>
 
-        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
           <div>
             ${existingConsents.length > 0 ? `
-              <button type="button" class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger);" onclick="ConsentView.revokeAllConsent('${student.id}')">
+              <button type="button" class="btn btn-sm btn-outline scale-press" style="color: var(--danger); border-color: var(--danger); padding: 4px 8px; font-size: 0.75rem;" onclick="ConsentView.revokeAllConsent('${student.id}')">
                 Cabut Izin
               </button>
             ` : ''}
           </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary scale-press" onclick="document.getElementById('consentModal').remove()">Batal</button>
-            <button class="btn btn-primary scale-press" onclick="ConsentView.submitConsent('${student.id}')">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto;">
+            <button class="btn btn-secondary scale-press" style="padding: 6px 12px; font-size: 0.82rem;" onclick="document.getElementById('consentModal').remove()">Batal</button>
+            <button class="btn btn-primary scale-press" style="padding: 6px 14px; font-size: 0.82rem;" onclick="ConsentView.submitConsent('${student.id}')">
               ${existingConsents.length > 0 ? 'Perbarui Persetujuan' : 'Simpan Persetujuan'}
             </button>
           </div>
