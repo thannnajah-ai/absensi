@@ -118,8 +118,13 @@ class App {
           <span class="header-user-name" title="${this.currentUser.full_name}">
             ${this.currentUser.full_name}
           </span>
-          <button class="btn btn-sm btn-outline header-logout-btn" onclick="App.logout()" title="Keluar dari akun">
-            Keluar
+          <button class="btn btn-sm btn-outline header-logout-btn" onclick="App.logout()" title="Keluar dari akun" aria-label="Keluar">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span class="logout-text">Keluar</span>
           </button>
         </div>
       `;
@@ -138,7 +143,7 @@ class App {
           </button>
         </div>
 
-        <select class="test-select" id="userSwitcherSelect" onchange="App.switchUser(this.value)">
+        <select class="test-select header-user-select" id="userSwitcherSelect" onchange="App.switchUser(this.value)">
           <optgroup label="Akun Siswa">
             <option value="usr-1" ${this.currentUserId === 'usr-1' ? 'selected' : ''}>Budi (XII-IPA-1)</option>
             <option value="usr-2" ${this.currentUserId === 'usr-2' ? 'selected' : ''}>Siti (XII-IPA-1)</option>
@@ -149,8 +154,13 @@ class App {
           </optgroup>
         </select>
 
-        <button class="btn btn-sm btn-outline header-logout-btn" onclick="App.logout()" title="Keluar ke Layar Login">
-          Keluar
+        <button class="btn btn-sm btn-outline header-logout-btn" onclick="App.logout()" title="Keluar ke Layar Login" aria-label="Keluar">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span class="logout-text">Keluar</span>
         </button>
       </div>
     `;

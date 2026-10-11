@@ -457,6 +457,13 @@ class StudentView {
 
     document.body.appendChild(modal);
 
+    // Close when tapping outside modal-content (backdrop click)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        StudentView.closeCheckinModal();
+      }
+    });
+
     // Initialize Camera & Location
     const videoEl = document.getElementById('selfieVideo');
     await this.cameraService.startCamera(videoEl);
