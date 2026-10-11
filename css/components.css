@@ -869,12 +869,14 @@
 .modal-close-btn {
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   cursor: pointer;
   color: var(--text-muted);
   line-height: 1;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -982,8 +984,9 @@
   flex-direction: column;
   gap: 8px;
   z-index: 999;
-  max-width: 90%;
-  width: 380px;
+  max-width: calc(100vw - 24px);
+  width: min(380px, calc(100vw - 24px));
+  box-sizing: border-box;
   pointer-events: none;
 }
 
@@ -1032,6 +1035,9 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: auto !important;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .table-scroll-hint {
@@ -1690,6 +1696,8 @@
 
 .login-input-icon-btn {
   cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -2584,8 +2592,10 @@
 }
 
 .tg-send-btn {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
   border-radius: 50%;
   border: none;
   background: #24A1DE;
@@ -2909,6 +2919,42 @@
   }
   .print-no-print {
     display: none !important;
+  }
+}
+
+/* ==========================================================================
+   TABLET & MID-WIDTH RESPONSIVE REFLOW (601px - 960px)
+   Eliminates Two-State Layout slop: multi-column grids & action headers reflow gracefully
+   ========================================================================== */
+@media (max-width: 960px) {
+  .bento-grid,
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .bento-card-hero,
+  .metric-grid .metric-card:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .admin-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .admin-filter-search-wrap {
+    width: 100%;
+    flex: none;
   }
 }
 
@@ -3349,6 +3395,30 @@
 
   .status-value {
     font-size: 0.92rem;
+  }
+
+  .bento-grid,
+  .metric-grid {
+    gap: 8px;
+  }
+
+  .bento-card-stat {
+    padding: 10px 10px;
+    min-height: 100px;
+  }
+
+  .bento-card-stat .bento-value {
+    font-size: 1.35rem;
+  }
+
+  .bento-icon-badge {
+    width: 24px;
+    height: 24px;
+  }
+
+  .bento-icon-badge svg {
+    width: 12px;
+    height: 12px;
   }
 }
 

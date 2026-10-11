@@ -324,10 +324,10 @@ a.btn,
 
   .header-logout-btn {
     padding: 0 !important;
-    width: 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
-    min-width: 36px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    min-width: 40px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -341,18 +341,22 @@ a.btn,
 
   .header-logout-btn svg {
     margin: 0;
-    width: 18px !important;
-    height: 18px !important;
+    width: 20px !important;
+    height: 20px !important;
   }
 
   .role-switcher {
-    padding: 2px 4px;
-    gap: 2px;
+    padding: 3px 4px;
+    gap: 3px;
   }
 
   .role-btn {
-    padding: 4px 6px;
-    font-size: 0.72rem;
+    padding: 6px 10px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
   }
 
   .header-user-select,
@@ -380,9 +384,10 @@ a.btn,
   }
 
   .header-logout-btn {
-    width: 32px;
-    height: 32px;
-    min-height: 32px;
+    width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    min-width: 38px !important;
   }
 }
 
@@ -583,7 +588,7 @@ a.btn,
     background: var(--surface);
     position: sticky;
     top: 52px;
-    top: max(52px, env(safe-area-inset-top, 52px));
+    top: calc(52px + env(safe-area-inset-top, 0px));
     z-index: 40;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
@@ -642,7 +647,7 @@ a.btn,
 
   .admin-main {
     padding: 16px 14px;
-    padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     width: 100%;
     max-width: 100vw;
     box-sizing: border-box;

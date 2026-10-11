@@ -1,4 +1,4 @@
-const CACHE_NAME = 'absensi-cache-v11';
+const CACHE_NAME = 'absensi-cache-v12';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
