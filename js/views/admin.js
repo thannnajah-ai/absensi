@@ -69,6 +69,15 @@ class AdminView {
     }
   }
 
+  static getSelfieSrc(path) {
+    if (!path) return '';
+    if (typeof path === 'string' && path.startsWith('data:image/svg+xml;utf8,<svg') && path.includes('"')) {
+      const rawSvg = path.replace('data:image/svg+xml;utf8,', '');
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(rawSvg);
+    }
+    return path;
+  }
+
   static render(container) {
     const pendingReviewCount = this.getPendingReviewCount();
 
@@ -143,6 +152,14 @@ class AdminView {
       </div>
     `;
 
+    // Auto-scroll active tab into view in horizontal menu on mobile
+    setTimeout(() => {
+      const activeBtn = document.querySelector('.admin-sidebar .admin-nav-item.active');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      }
+    }, 60);
+
     // Initialize map if on 'lokasi' tab
     if (this.currentTab === 'lokasi') {
       setTimeout(() => this.initSiteMap(), 100);
@@ -153,6 +170,14 @@ class AdminView {
     this.currentTab = tab;
     localStorage.setItem('admin_active_tab', tab);
     App.renderCurrentView();
+    // Scroll window to top instantly so new tab content is never cut off under sticky headers
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setTimeout(() => {
+      const activeBtn = document.querySelector('.admin-sidebar .admin-nav-item.active');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      }
+    }, 50);
   }
 
   static getPendingReviewCount() {
@@ -206,41 +231,84 @@ class AdminView {
           </div>
         </div>
 
-        <!-- Metric Grid (design(3).md Section 5.5) -->
-        <div class="metric-grid">
-          <div class="metric-card">
-            <span class="metric-card-title">Total Hadir Hari Ini</span>
-            <span class="metric-card-value" style="color: var(--primary-700);">${totalHadir} <span style="font-size: 1rem; color: var(--text-muted); font-weight: 500;">/ ${students.length} Siswa</span></span>
-            <span class="metric-card-desc">Absensi masuk tercatat di server</span>
+        <!-- Bento Metric Grid (Modern Harmonious Bento Dashboard) -->
+        <div class="bento-grid">
+          <!-- Hero Bento Card: Total Kehadiran -->
+          <div class="bento-card bento-card-hero">
+            <div class="bento-header">
+              <div class="bento-title-wrap">
+                <span class="bento-icon-badge" style="background: var(--primary-100); color: var(--primary-700);">
+                  ${Icons.users(16)}
+                </span>
+                <span class="bento-title">Total Kehadiran Hari Ini</span>
+              </div>
+              <span class="badge badge-primary" style="font-size: 0.72rem; padding: 2px 8px;">
+                ${students.length > 0 ? Math.round((totalHadir / students.length) * 100) : 0}% Hadir
+              </span>
+            </div>
+            <div class="bento-hero-body">
+              <div class="bento-value-hero">
+                <span class="tabular-nums">${totalHadir}</span>
+                <span class="bento-value-sub">/ ${students.length} Santri/Siswa</span>
+              </div>
+              <div class="bento-progress-track">
+                <div class="bento-progress-bar" style="width: ${students.length > 0 ? Math.min(100, Math.round((totalHadir / students.length) * 100)) : 0}%;"></div>
+              </div>
+            </div>
+            <div class="bento-desc">Absensi masuk resmi tercatat di server madrasah</div>
           </div>
 
-          <div class="metric-card">
-            <span class="metric-card-title">Tepat Waktu</span>
-            <span class="metric-card-value" style="color: var(--success);">${tepatWaktu}</span>
-            <span class="metric-card-desc">Sesuai jam masuk sekolah</span>
+          <!-- Sub Card 1: Tepat Waktu -->
+          <div class="bento-card bento-card-stat">
+            <div class="bento-header">
+              <span class="bento-title">Tepat Waktu</span>
+              <span class="bento-icon-badge" style="background: #DCFCE7; color: #15803D;">
+                ${Icons.check(14)}
+              </span>
+            </div>
+            <div class="bento-value tabular-nums" style="color: var(--success);">${tepatWaktu}</div>
+            <div class="bento-desc">Sesuai jam masuk</div>
           </div>
 
-          <div class="metric-card">
-            <span class="metric-card-title">Terlambat</span>
-            <span class="metric-card-value" style="color: var(--warning);">${terlambat}</span>
-            <span class="metric-card-desc">Lewat toleransi waktu</span>
+          <!-- Sub Card 2: Terlambat -->
+          <div class="bento-card bento-card-stat">
+            <div class="bento-header">
+              <span class="bento-title">Terlambat</span>
+              <span class="bento-icon-badge" style="background: #FEF3C7; color: #B45309;">
+                ${Icons.clock(14)}
+              </span>
+            </div>
+            <div class="bento-value tabular-nums" style="color: var(--warning);">${terlambat}</div>
+            <div class="bento-desc">Lewat toleransi waktu</div>
           </div>
 
-          <div class="metric-card">
-            <span class="metric-card-title">Di Luar Area</span>
-            <span class="metric-card-value" style="color: #D97706;">${luarArea}</span>
-            <span class="metric-card-desc">Jarak melebihi radius sekolah</span>
+          <!-- Sub Card 3: Di Luar Area -->
+          <div class="bento-card bento-card-stat">
+            <div class="bento-header">
+              <span class="bento-title">Di Luar Area</span>
+              <span class="bento-icon-badge" style="background: #FFEDD5; color: #C2410C;">
+                ${Icons.mapPin(14)}
+              </span>
+            </div>
+            <div class="bento-value tabular-nums" style="color: #EA580C;">${luarArea}</div>
+            <div class="bento-desc">Di luar radius gerbang</div>
           </div>
 
-          <div class="metric-card">
-            <span class="metric-card-title">Belum Absen</span>
-            <span class="metric-card-value" style="color: var(--danger);">${belumHadir}</span>
-            <span class="metric-card-desc">Belum melakukan check-in</span>
+          <!-- Sub Card 4: Belum Absen -->
+          <div class="bento-card bento-card-stat">
+            <div class="bento-header">
+              <span class="bento-title">Belum Absen</span>
+              <span class="bento-icon-badge" style="background: #FEE2E2; color: #B91C1C;">
+                ${Icons.alertCircle(14)}
+              </span>
+            </div>
+            <div class="bento-value tabular-nums" style="color: var(--danger);">${belumHadir}</div>
+            <div class="bento-desc">Belum check-in server</div>
           </div>
         </div>
 
         <!-- Recent Table -->
-        <div class="card" style="margin-top: 24px;">
+        <div class="card" style="margin-top: 14px;">
           <div class="card-header">
             <span class="card-title">Aktivitas Absensi Terbaru</span>
             <button class="btn btn-sm btn-outline scale-press" onclick="AdminView.setTab('rekap')">Semua Data</button>
@@ -252,6 +320,9 @@ class AdminView {
               <div class="empty-state-desc">Belum ada siswa yang melakukan absensi hari ini.</div>
             </div>
           ` : `
+            <div class="table-scroll-hint">
+              <span>👉 Geser tabel ke kanan untuk melihat rincian lengkap</span>
+            </div>
             <div class="table-wrapper">
               <table class="data-table">
                 <thead>
@@ -272,7 +343,7 @@ class AdminView {
                       <tr>
                         <td>
                           <div style="display: flex; align-items: center; gap: 10px;">
-                            <img src="${att.selfie_path}" style="width: 34px; height: 34px; border-radius: 6px; object-fit: cover;" />
+                            <img src="${AdminView.getSelfieSrc(att.selfie_path)}" alt="Selfie" style="width: 36px; height: 36px; border-radius: 6px; object-fit: cover; flex-shrink: 0;" />
                             <div>
                               <b>${student?.full_name || 'Siswa'}</b>
                               <div style="font-size: 0.75rem; color: var(--text-muted);">NIS: ${student?.nis || '-'}</div>
@@ -369,7 +440,10 @@ class AdminView {
             <div class="empty-state-desc">Tidak ditemukan data absensi yang sesuai dengan kriteria filter yang Anda pilih.</div>
           </div>
         ` : `
-          <div class="table-wrapper" style="margin-top: 16px;">
+          <div class="table-scroll-hint" style="margin-top: 16px;">
+            <span>👉 Geser tabel ke kanan untuk melihat rincian & aksi lengkap</span>
+          </div>
+          <div class="table-wrapper" style="margin-top: 6px;">
             <table class="data-table">
               <thead>
                 <tr>
@@ -389,7 +463,7 @@ class AdminView {
                   const s = DB.getProfileById(att.user_id);
                   return `
                     <tr>
-                      <td><img src="${att.selfie_path}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;" /></td>
+                      <td><img src="${AdminView.getSelfieSrc(att.selfie_path)}" alt="Selfie" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0;" /></td>
                       <td><b>${s?.full_name || 'Siswa'}</b></td>
                       <td>${s?.nis || '-'}</td>
                       <td>${s?.class_name || '-'}</td>
@@ -438,6 +512,9 @@ class AdminView {
               <div class="empty-state-desc">Tidak ada catatan kehadiran di luar radius gerbang sekolah yang menunggu tinjauan admin.</div>
             </div>
           ` : `
+            <div class="table-scroll-hint">
+              <span>👉 Geser tabel ke kanan untuk melihat rincian & verifikasi</span>
+            </div>
             <div class="table-wrapper">
               <table class="data-table">
                 <thead>
@@ -456,7 +533,7 @@ class AdminView {
                     return `
                       <tr>
                         <td>
-                          <img src="${a.selfie_path}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--border);" onclick="AdminView.showDetailModal('${a.id}')" title="Klik untuk lihat detail" />
+                          <img src="${AdminView.getSelfieSrc(a.selfie_path)}" alt="Selfie" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--border); flex-shrink: 0;" onclick="AdminView.showDetailModal('${a.id}')" title="Klik untuk lihat detail" />
                         </td>
                         <td>
                           <div style="cursor: pointer;" onclick="AdminView.showDetailModal('${a.id}')">
@@ -502,6 +579,9 @@ class AdminView {
               <div class="empty-state-desc">Semua pengajuan surat izin dan sakit siswa telah diverifikasi atau belum ada pengajuan baru.</div>
             </div>
           ` : `
+            <div class="table-scroll-hint">
+              <span>👉 Geser tabel ke kanan untuk melihat surat & persetujuan</span>
+            </div>
             <div class="table-wrapper">
               <table class="data-table">
                 <thead>
@@ -572,6 +652,9 @@ class AdminView {
             <div class="empty-state-desc">Gunakan tombol Impor CSV atau Tambah Siswa untuk mendaftarkan akun siswa baru.</div>
           </div>
         ` : `
+          <div class="table-scroll-hint">
+            <span>👉 Geser tabel ke kanan untuk melihat rincian akun</span>
+          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
@@ -626,6 +709,9 @@ class AdminView {
             <div class="empty-state-desc">Data orang tua/wali akan otomatis terdaftar saat akun siswa dibuat.</div>
           </div>
         ` : `
+          <div class="table-scroll-hint">
+            <span>👉 Geser tabel ke kanan untuk melihat status & aksi tautan</span>
+          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
@@ -732,6 +818,9 @@ class AdminView {
             <div class="empty-state-desc">Semua pesan notifikasi kehadiran telah berhasil dikirimkan ke Telegram wali siswa.</div>
           </div>
         ` : `
+          <div class="table-scroll-hint">
+            <span>👉 Geser tabel ke kanan untuk melihat rincian & status antrean</span>
+          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
@@ -1467,7 +1556,7 @@ class AdminView {
         </div>
         <div class="modal-body">
           <div style="display: flex; gap: 16px; align-items: flex-start;">
-            <img src="${att.selfie_path}" alt="Selfie" style="width: 130px; height: 130px; border-radius: var(--radius-card); object-fit: cover; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.06); flex-shrink: 0;" />
+            <img src="${AdminView.getSelfieSrc(att.selfie_path)}" alt="Selfie" style="width: 130px; height: 130px; border-radius: var(--radius-card); object-fit: cover; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.06); flex-shrink: 0;" />
             <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; flex: 1;">
               <div style="font-size: 1.15rem; font-weight: 800; color: var(--primary-900);">${student?.full_name || 'Siswa'}</div>
               <div><b>NIS:</b> ${student?.nis || '-'} • <b>Kelas:</b> ${student?.class_name || '-'}</div>

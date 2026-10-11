@@ -124,7 +124,7 @@ const DEFAULT_DB = {
       lng: 110.3533,
       accuracy_m: 14,
       distance_m: 12,
-      selfie_path: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23DBEAFE"/><circle cx="100" cy="80" r="40" fill="%232563EB"/><path d="M40 180 C40 130 160 130 160 180 Z" fill="%231E40AF"/><text x="100" y="195" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23FFF">Siti Rahma</text></svg>',
+      selfie_path: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#DBEAFE"/><circle cx="100" cy="80" r="40" fill="#2563EB"/><path d="M40 180 C40 130 160 130 160 180 Z" fill="#1E40AF"/><text x="100" y="195" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#FFF">Siti Rahma</text></svg>'),
       status: 'on_time',
       flags: {},
       created_at: new Date(new Date().setHours(6, 55, 0, 0)).toISOString()
@@ -186,13 +186,27 @@ class DB {
       }
       const parsed = JSON.parse(data);
       // Auto-migrate site name & coordinates if using old default
+      let needsSave = false;
       if (parsed.sites && parsed.sites[0]) {
         if (parsed.sites[0].name === 'SMAN 1 Teladan' || parsed.sites[0].lat === -6.2088) {
           parsed.sites[0].name = "Madrasah Mu'allimin Muhammadiyah Yogyakarta";
           parsed.sites[0].lat = -7.8037;
           parsed.sites[0].lng = 110.3533;
-          localStorage.setItem(DB_KEY, JSON.stringify(parsed));
+          needsSave = true;
         }
+      }
+      // Auto-migrate raw unencoded SVG in attendance selfies
+      if (parsed.attendance && Array.isArray(parsed.attendance)) {
+        parsed.attendance.forEach(a => {
+          if (a.selfie_path && typeof a.selfie_path === 'string' && a.selfie_path.startsWith('data:image/svg+xml;utf8,<svg') && a.selfie_path.includes('"')) {
+            const rawSvg = a.selfie_path.replace('data:image/svg+xml;utf8,', '');
+            a.selfie_path = 'data:image/svg+xml;utf8,' + encodeURIComponent(rawSvg);
+            needsSave = true;
+          }
+        });
+      }
+      if (needsSave) {
+        localStorage.setItem(DB_KEY, JSON.stringify(parsed));
       }
       return parsed;
     } catch (e) {
