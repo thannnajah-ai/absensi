@@ -202,34 +202,69 @@ class SupabaseService {
       const localDb = DB.get();
       let updated = false;
 
+      // 1. Merge Profiles (Preserve local profiles)
       if (Array.isArray(profiles) && profiles.length > 0) {
-        localDb.profiles = profiles;
+        const pMap = new Map((localDb.profiles || []).map(p => [p.id, p]));
+        for (const p of profiles) {
+          pMap.set(p.id, { ...pMap.get(p.id), ...p });
+        }
+        localDb.profiles = Array.from(pMap.values());
         updated = true;
       }
+
+      // 2. Merge Sites
       if (Array.isArray(sites) && sites.length > 0) {
         localDb.sites = sites;
         updated = true;
       }
+
+      // 3. Merge Attendance (Preserve offline / local records not yet in cloud)
       if (Array.isArray(attendance) && attendance.length > 0) {
-        localDb.attendance = attendance;
+        const aMap = new Map((localDb.attendance || []).map(a => [a.id, a]));
+        for (const a of attendance) {
+          aMap.set(a.id, { ...aMap.get(a.id), ...a });
+        }
+        localDb.attendance = Array.from(aMap.values()).sort((a, b) => new Date(b.server_time) - new Date(a.server_time));
         updated = true;
       }
+
+      // 4. Merge Leave Requests
       if (Array.isArray(leaveRequests) && leaveRequests.length > 0) {
-        localDb.leave_requests = leaveRequests;
+        const lMap = new Map((localDb.leave_requests || []).map(l => [l.id, l]));
+        for (const l of leaveRequests) {
+          lMap.set(l.id, { ...lMap.get(l.id), ...l });
+        }
+        localDb.leave_requests = Array.from(lMap.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         updated = true;
       }
+
+      // 5. Merge Guardians
       if (Array.isArray(guardians) && guardians.length > 0) {
-        localDb.guardians = guardians;
+        const gMap = new Map((localDb.guardians || []).map(g => [g.id, g]));
+        for (const g of guardians) {
+          gMap.set(g.id, { ...gMap.get(g.id), ...g });
+        }
+        localDb.guardians = Array.from(gMap.values());
         updated = true;
       }
+
+      // 6. Merge Consents
       if (Array.isArray(consents) && consents.length > 0) {
-        localDb.consents = consents;
+        const cMap = new Map((localDb.consents || []).map(c => [c.id || `${c.student_id}_${c.purpose}`, c]));
+        for (const c of consents) {
+          const key = c.id || `${c.student_id}_${c.purpose}`;
+          cMap.set(key, { ...cMap.get(key), ...c });
+        }
+        localDb.consents = Array.from(cMap.values());
         updated = true;
       }
 
       if (updated) {
         DB.save(localDb);
         this.lastSyncTime = new Date();
+        if (typeof App !== 'undefined' && typeof App.renderCurrentView === 'function') {
+          App.renderCurrentView();
+        }
       }
 
       return {

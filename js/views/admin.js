@@ -4,7 +4,7 @@
  */
 
 class AdminView {
-  static currentTab = 'ringkasan';
+  static currentTab = localStorage.getItem('admin_active_tab') || 'ringkasan';
   static currentFilterClass = 'all';
   static currentFilterStatus = 'all';
   static currentFilterDate = 'all';
@@ -76,7 +76,7 @@ class AdminView {
       <div class="admin-layout panel-enter">
         <!-- Sidebar Navigation (design(3).md Section 4 & Wireframe E) -->
         <aside class="admin-sidebar">
-          <div style="padding: 10px 14px; font-weight: 800; font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+          <div class="admin-sidebar-header" style="padding: 10px 14px; font-weight: 800; font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
             Menu Manajemen
           </div>
 
@@ -116,7 +116,7 @@ class AdminView {
             <span>Lokasi & Jadwal</span>
           </button>
 
-          <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border);">
+          <div class="admin-sidebar-footer" style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border);">
             <div style="background: var(--surface-alt); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 10px; font-size: 0.76rem; border: 1px solid var(--border);">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                 <span style="font-weight: 700; color: var(--text-secondary);">Supabase Cloud</span>
@@ -151,6 +151,7 @@ class AdminView {
 
   static setTab(tab) {
     this.currentTab = tab;
+    localStorage.setItem('admin_active_tab', tab);
     App.renderCurrentView();
   }
 

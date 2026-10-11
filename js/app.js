@@ -7,7 +7,7 @@ class App {
   static currentUser = null;
   static currentRole = 'guest'; // 'student', 'admin', or 'guest'
   static currentUserId = null;
-  static currentStudentTab = 'beranda';
+  static currentStudentTab = localStorage.getItem('student_active_tab') || 'beranda';
 
   static init() {
     // 1. Terapkan konfigurasi mode produksi jika aktif
@@ -39,6 +39,12 @@ class App {
       this.currentUser = null;
       this.currentRole = 'guest';
     }
+
+    // 3. Pulihkan tab terakhir yang aktif
+    if (typeof AdminView !== 'undefined') {
+      AdminView.currentTab = localStorage.getItem('admin_active_tab') || 'ringkasan';
+    }
+    this.currentStudentTab = localStorage.getItem('student_active_tab') || 'beranda';
 
     this.renderHeaderControls();
     this.renderCurrentView();
@@ -196,6 +202,7 @@ class App {
 
   static setStudentTab(tab) {
     this.currentStudentTab = tab;
+    localStorage.setItem('student_active_tab', tab);
     this.renderCurrentView();
   }
 
