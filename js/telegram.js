@@ -27,13 +27,33 @@ class TelegramService {
     );
   }
 
+  static getToken() {
+    return localStorage.getItem('custom_telegram_bot_token') || window.AppConfig?.telegramBotToken || '';
+  }
+
+  static getBotUsername() {
+    return localStorage.getItem('custom_telegram_bot_username') || window.AppConfig?.telegramBotUsername || 'AbsenM3INBot';
+  }
+
+  static async testBotConnection(token) {
+    const t = token || this.getToken();
+    if (!t) return { ok: false, error: 'Token belum diisi' };
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${t}/getMe`);
+      const data = await res.json();
+      return data;
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  }
+
   /**
    * Mengirim pesan nyata ke API Telegram Resmi
    */
   static async sendRealMessage(chatId, text) {
-    const token = window.AppConfig?.telegramBotToken;
+    const token = this.getToken();
     if (!token) {
-      return { success: false, error: 'Token Bot belum diatur di AppConfig' };
+      return { success: false, error: 'Token Bot belum diatur' };
     }
 
     try {
@@ -63,7 +83,7 @@ class TelegramService {
    * Membaca pesan masuk dari Bot Telegram untuk penautan kode otomatis
    */
   static async syncBotUpdates() {
-    const token = window.AppConfig?.telegramBotToken;
+    const token = this.getToken();
     if (!token) {
       return { success: false, count: 0, message: 'Token Bot belum diatur' };
     }
@@ -235,7 +255,7 @@ class TelegramService {
     }
 
     const db = DB.get();
-    const token = window.AppConfig?.telegramBotToken;
+    const token = this.getToken();
     let sentCount = 0;
 
     const queue = db.notification_queue || [];

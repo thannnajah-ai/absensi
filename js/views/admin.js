@@ -152,17 +152,23 @@ class AdminView {
       </div>
     `;
 
-    // Auto-scroll active tab into view in horizontal menu on mobile
+    // Auto-scroll active tab into view horizontally in mobile nav bar without vertical page scroll
     setTimeout(() => {
-      const activeBtn = document.querySelector('.admin-sidebar .admin-nav-item.active');
-      if (activeBtn) {
-        activeBtn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-      }
+      this.centerActiveNavTab();
     }, 60);
 
     // Initialize map if on 'lokasi' tab
     if (this.currentTab === 'lokasi') {
       setTimeout(() => this.initSiteMap(), 100);
+    }
+  }
+
+  static centerActiveNavTab() {
+    const sidebar = document.querySelector('.admin-sidebar');
+    const activeBtn = sidebar?.querySelector('.admin-nav-item.active');
+    if (sidebar && activeBtn) {
+      const targetLeft = activeBtn.offsetLeft - (sidebar.clientWidth / 2) + (activeBtn.clientWidth / 2);
+      sidebar.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
     }
   }
 
@@ -173,10 +179,7 @@ class AdminView {
     // Scroll window to top instantly so new tab content is never cut off under sticky headers
     window.scrollTo({ top: 0, behavior: 'instant' });
     setTimeout(() => {
-      const activeBtn = document.querySelector('.admin-sidebar .admin-nav-item.active');
-      if (activeBtn) {
-        activeBtn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-      }
+      this.centerActiveNavTab();
     }, 50);
   }
 
@@ -775,7 +778,8 @@ class AdminView {
   static renderTelegram() {
     const queue = DB.getNotificationQueue();
     const queuedCount = queue.filter(q => q.status === 'queued').length;
-    const botUser = window.AppConfig?.telegramBotUsername || 'AbsenM3INBot';
+    const botUser = (typeof TelegramService !== 'undefined' ? TelegramService.getBotUsername() : null) || window.AppConfig?.telegramBotUsername || 'AbsenM3INBot';
+    const hasToken = typeof TelegramService !== 'undefined' && !!TelegramService.getToken();
 
     return `
       <div>
@@ -785,6 +789,9 @@ class AdminView {
             <p>Worker memproses antrean terpisah (Maks 3 kali percobaan ulang untuk gangguan sementara, PRD FR-39)</p>
           </div>
           <div class="admin-header-actions">
+            <button class="btn btn-secondary scale-press" onclick="AdminView.openBotSettingsModal()">
+              ⚙️ Pengaturan Bot
+            </button>
             <button class="btn btn-secondary scale-press" onclick="AdminView.syncTelegramBot()">
               Sinkronkan Pesan Masuk
             </button>
@@ -802,9 +809,14 @@ class AdminView {
           <div>
             <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Bot Telegram Sekolah Resmi</div>
             <div style="font-size: 1.15rem; font-weight: 800; color: var(--primary-900); margin: 2px 0;">@${botUser}</div>
-            <div style="font-size: 0.8rem; color: var(--success); font-weight: 600;">Terhubung ke Telegram Bot API Resmi</div>
+            <div style="font-size: 0.8rem; color: ${hasToken ? 'var(--success)' : 'var(--warning)'}; font-weight: 600;">
+              ${hasToken ? '✅ Terhubung ke Telegram Bot API' : '⚠️ Token Bot Belum Dikonfigurasi (Klik Atur Bot)'}
+            </div>
           </div>
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-sm btn-secondary scale-press" onclick="AdminView.openBotSettingsModal()">
+              ⚙️ Atur Token Bot
+            </button>
             <a href="https://t.me/${botUser}" target="_blank" class="btn btn-sm btn-outline scale-press">
               Buka @${botUser} di Telegram
             </a>
@@ -1260,7 +1272,8 @@ class AdminView {
       }
       App.showToast('Akun Telegram berhasil ditautkan!', 'success');
     } else {
-      App.showToast('Belum ada pesan yang cocok dari Telegram. Pastikan kode sudah dikirimkan ke @AbsenM3INBot.', 'warning');
+      const botName = typeof TelegramService !== 'undefined' ? TelegramService.getBotUsername() : 'AbsenM3INBot';
+      App.showToast(`Belum ada pesan yang cocok dari Telegram. Pastikan kode sudah dikirimkan ke @${botName}.`, 'warning');
     }
   }
 
@@ -1291,8 +1304,119 @@ class AdminView {
     }
   }
 
+  static openBotSettingsModal() {
+    const currentToken = typeof TelegramService !== 'undefined' ? TelegramService.getToken() : '';
+    const currentUsername = typeof TelegramService !== 'undefined' ? TelegramService.getBotUsername() : 'AbsenM3INBot';
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+          <div class="modal-title">Pengaturan Bot Telegram Resmi</div>
+          <button class="modal-close-btn" onclick="this.closest('.modal-backdrop').remove()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; padding: 12px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 14px; line-height: 1.5;">
+            <b>💡 Cara Mengatasi Bot Dibajak / Buat Bot Baru:</b><br/>
+            1. Buka <b>@BotFather</b> di aplikasi Telegram Anda.<br/>
+            2. Jika sudah punya bot: ketik <code>/mybots</code> &rarr; pilih bot Anda &rarr; <b>API Token</b> &rarr; klik <b>Revoke current token</b> (token lama mati seketika).<br/>
+            3. Jika buat bot baru: ketik <code>/newbot</code> &rarr; beri nama & username (contoh: <code>MualliminAbsenBot</code>).<br/>
+            4. Salin token dari BotFather dan tempelkan pada kolom di bawah.
+          </div>
+
+          <div class="form-group">
+            <label class="form-label form-label-required">Username Bot</label>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-weight: 700; color: var(--text-secondary);">@</span>
+              <input type="text" id="settingBotUsername" class="form-input" value="${currentUsername.replace(/^@/, '')}" placeholder="Contoh: AbsenM3INBot" />
+            </div>
+            <span class="form-help">Username yang berakhiran 'bot' sesuai di Telegram BotFather.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label form-label-required">Bot API Token</label>
+            <div style="display: flex; gap: 6px;">
+              <input type="password" id="settingBotToken" class="form-input" value="${currentToken}" placeholder="Contoh: 123456789:ABCdefGHI..." />
+              <button type="button" class="btn btn-secondary btn-sm" onclick="const i = document.getElementById('settingBotToken'); i.type = i.type === 'password' ? 'text' : 'password'; this.textContent = i.type === 'password' ? 'Lihat' : 'Tutup';">Lihat</button>
+            </div>
+            <span class="form-help">Token tersimpan lokal di browser sekolah secara aman tanpa diunggah ke repository publik.</span>
+          </div>
+
+          <div id="botConnectionResult" style="margin-top: 10px; font-size: 0.82rem;"></div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <button type="button" class="btn btn-secondary scale-press" onclick="AdminView.testBotSettingConnection(this)">
+            🔌 Uji Koneksi
+          </button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="this.closest('.modal-backdrop').remove()">Batal</button>
+            <button class="btn btn-primary" onclick="AdminView.saveBotSettings(this)">Simpan Pengaturan</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  static async testBotSettingConnection(btn) {
+    const token = document.getElementById('settingBotToken')?.value.trim();
+    const resultEl = document.getElementById('botConnectionResult');
+    if (!token) {
+      if (resultEl) resultEl.innerHTML = `<span style="color: var(--danger); font-weight: 600;">⚠️ Harap masukkan token bot terlebih dahulu!</span>`;
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Memeriksa...';
+    if (resultEl) resultEl.innerHTML = `<span style="color: var(--text-secondary);">Menghubungi Telegram API...</span>`;
+
+    try {
+      const data = await TelegramService.testBotConnection(token);
+      if (data.ok && data.result) {
+        resultEl.innerHTML = `
+          <div style="background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 8px 12px; border-radius: 6px; font-weight: 600;">
+            ✅ Terhubung! Bot: <b>${data.result.first_name}</b> (@${data.result.username})
+          </div>
+        `;
+        const userInp = document.getElementById('settingBotUsername');
+        if (userInp && data.result.username) userInp.value = data.result.username;
+      } else {
+        resultEl.innerHTML = `
+          <div style="background: #FEF2F2; border: 1px solid #EF4444; color: #991B1B; padding: 8px 12px; border-radius: 6px;">
+            ❌ Gagal: ${data.description || 'Token tidak valid / tidak dikenal Telegram'}
+          </div>
+        `;
+      }
+    } catch (e) {
+      resultEl.innerHTML = `
+        <div style="background: #FEF2F2; border: 1px solid #EF4444; color: #991B1B; padding: 8px 12px; border-radius: 6px;">
+          ❌ Error koneksi: ${e.message}
+        </div>
+      `;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔌 Uji Koneksi';
+    }
+  }
+
+  static saveBotSettings(btn) {
+    const token = document.getElementById('settingBotToken')?.value.trim();
+    let username = document.getElementById('settingBotUsername')?.value.trim().replace(/^@/, '');
+    if (!token) {
+      App.showToast('Token Telegram tidak boleh kosong!', 'error');
+      return;
+    }
+    if (!username) {
+      username = 'AbsenM3INBot';
+    }
+    localStorage.setItem('custom_telegram_bot_token', token);
+    localStorage.setItem('custom_telegram_bot_username', username);
+    btn.closest('.modal-backdrop').remove();
+    App.showToast(`Bot @${username} berhasil dikonfigurasi!`, 'success');
+    App.renderCurrentView();
+  }
+
   static openTestTelegramModal() {
-    const botUser = window.AppConfig?.telegramBotUsername || 'AbsenM3INBot';
+    const botUser = (typeof TelegramService !== 'undefined' ? TelegramService.getBotUsername() : null) || window.AppConfig?.telegramBotUsername || 'AbsenM3INBot';
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
     modal.innerHTML = `

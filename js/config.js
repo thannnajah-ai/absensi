@@ -15,7 +15,7 @@ const AppConfig = {
   appVersion: '1.2.0',
   supabaseUrl: 'https://dxrnpayzynimwelyglae.supabase.co',
   supabaseAnonKey: 'sb_publishable_UDPYWT0jKe8gey7bwrEbrA_Z7CxWrMg',
-  telegramBotToken: '8798424586:AAFpMPg8MtFlMmLHdpZ8OA3R5cyWSzznsmg',
+  telegramBotToken: '', // Token bot resmi diatur via menu Admin -> Notifikasi Telegram -> Pengaturan Bot
   telegramBotUsername: 'AbsenM3INBot'
 };
 

@@ -569,7 +569,7 @@ a.btn,
     width: 100%;
     max-width: 100vw;
     min-height: auto;
-    overflow-x: hidden;
+    overflow: visible !important;
   }
 
   .admin-sidebar {
@@ -587,8 +587,8 @@ a.btn,
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     position: sticky;
-    top: 52px;
-    top: calc(52px + env(safe-area-inset-top, 0px));
+    top: 60px;
+    top: calc(60px + env(safe-area-inset-top, 0px));
     z-index: 40;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
@@ -663,6 +663,13 @@ a.btn,
 
   .admin-main h1 {
     font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-sidebar {
+    top: 52px;
+    top: calc(52px + env(safe-area-inset-top, 0px));
   }
 }
 

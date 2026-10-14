@@ -406,9 +406,9 @@ class StudentView {
               <video id="selfieVideo" class="camera-video" autoplay playsinline muted></video>
               <canvas id="selfieCanvas" class="camera-canvas" style="display: none;"></canvas>
               
-              <!-- Oval Face Guide from design(3).md Wireframe B -->
+              <!-- Circular Face Guide -->
               <div id="cameraOverlayGuide" class="camera-overlay">
-                <div class="face-guide-oval"></div>
+                <div class="face-guide-circle face-guide-oval"></div>
                 <div class="camera-guide-text">Posisikan wajah Anda di dalam lingkaran</div>
               </div>
             </div>
@@ -751,9 +751,9 @@ class StudentView {
               <div>
                 <div class="telegram-badge-title">Notifikasi Telegram Wali</div>
                 <div class="telegram-badge-desc">
-                  ${hasLinkedGuardian 
-                    ? 'Otomatis terkirim ke Telegram orang tua / wali murid.' 
-                    : 'Akun Telegram wali belum ditautkan (Absensi tetap sah).'}
+                  ${hasLinkedGuardian
+        ? 'Otomatis terkirim ke Telegram orang tua / wali murid.'
+        : 'Akun Telegram wali belum ditautkan (Absensi tetap sah).'}
                 </div>
               </div>
             </div>
@@ -981,9 +981,9 @@ class StudentView {
       <div class="file-preview-card">
         <div class="file-preview-main">
           ${isImg
-            ? `<img src="${item.dataUrl}" class="file-preview-thumb" alt="Thumbnail" onclick="StudentView.openAttachmentLightbox('${item.dataUrl.replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}')" title="Klik untuk lihat pratinjau penuh" />`
-            : `<div class="file-preview-doc-icon">${Icons.fileText(20)}<span>PDF</span></div>`
-          }
+        ? `<img src="${item.dataUrl}" class="file-preview-thumb" alt="Thumbnail" onclick="StudentView.openAttachmentLightbox('${item.dataUrl.replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}')" title="Klik untuk lihat pratinjau penuh" />`
+        : `<div class="file-preview-doc-icon">${Icons.fileText(20)}<span>PDF</span></div>`
+      }
           <div class="file-preview-info">
             <div class="file-preview-name" title="${item.name}">${item.name}</div>
             <div class="file-preview-meta">
@@ -1052,9 +1052,9 @@ class StudentView {
         </div>
         <div class="lightbox-body">
           ${isPdf
-            ? `<iframe src="${url}" class="lightbox-iframe" style="width: 100%; height: 65vh; border: none; border-radius: 6px; background: #FFF;"></iframe>`
-            : `<img src="${url}" class="lightbox-img" alt="${title}" />`
-          }
+        ? `<iframe src="${url}" class="lightbox-iframe" style="width: 100%; height: 65vh; border: none; border-radius: 6px; background: #FFF;"></iframe>`
+        : `<img src="${url}" class="lightbox-img" alt="${title}" />`
+      }
         </div>
         <div class="lightbox-footer">
           <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 500;">
